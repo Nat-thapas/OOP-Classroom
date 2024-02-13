@@ -7,7 +7,7 @@ from user import User
 class InvalidCredentials(Exception):
     pass
 
-class EmailAlreadyUsed(Exception):
+class EmailAlreadyInUse(Exception):
     pass
 
 class Controller():
@@ -21,7 +21,7 @@ class Controller():
         for user in self.__users:
             if user.email == email:
                 logging.info(f"Email: {email} is already in use")
-                raise EmailAlreadyUsed("Email is already in use")
+                raise EmailAlreadyInUse("Email is already in use")
         user: User = User(name, email, password)
         self.__users.append(user)
         token: str = self.__sessions_controller.add_user(user)
