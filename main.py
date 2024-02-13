@@ -71,6 +71,15 @@ async def join_classroom(token: str, code: str):
         raise InvalidClassroomCodeHTTPException
 
 
-@app.get("/classroom/{classroom_id}")
-async def get_classroom(classroom_id: str):
-    pass
+@app.get("/classroom/{id}")
+async def get_classroom(token: str, id: str):
+    if not controller.check_token(token):
+        raise InvalidTokenHTTPException
+    user: User = controller.get_user(token)
+    try:
+        classroom: Classroom = controller.get_classroom(id)
+        return {"status": "success", "classroom_data": classroom.get_dict_repr(user)}
+    except LookupError:
+        raise ClassroomNotFoundHTTPException
+    except PermissionError:
+        raise NotInClassroomHTTPException

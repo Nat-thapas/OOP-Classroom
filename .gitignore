@@ -1,4 +1,5 @@
 .env
 *.ps1
 .vscode
+.VSCodeCounter
 __pycache__

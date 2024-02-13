@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import logging
+from uuid import uuid4
 
 from argon2 import PasswordHasher
 from argon2.exceptions import VerificationError, VerifyMismatchError
@@ -10,9 +11,14 @@ password_hasher = PasswordHasher()
 
 class User:
     def __init__(self, name: str, email: str, password: str) -> None:
+        self.__id: str = str(uuid4())
         self.__name: str = name
         self.__email: str = email
         self.__hashed_password: str = password_hasher.hash(password)
+
+    @property
+    def id(self) -> str:
+        return self.__id
 
     @property
     def name(self) -> str:

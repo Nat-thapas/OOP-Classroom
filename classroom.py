@@ -17,6 +17,7 @@ class TopicAlreadyExist(Exception):
 
 class Topic:
     def __init__(self, name: str) -> None:
+        self.__id: str = str(uuid4())
         self.__name: str = name
 
     @property
@@ -39,10 +40,15 @@ class Item:
         attachments: list[Attachment] | None,
         assigned_to: list[User] | None,
     ) -> None:
+        self.__id: str = str(uuid4())
         self.__topic: Topic = topic
         self.__time_created: float = time.time()
         self.__attachments: list[Attachment] | None = attachments
         self.__assigned_to: list[User] | None = assigned_to
+
+    @property
+    def id(self):
+        return self.__id
 
 
 class Announcement(Item):
@@ -160,6 +166,22 @@ class Classroom:
     @property
     def students(self) -> list[User]:
         return self.__students
+    
+    def get_dict_repr(self, user: User) -> dict[str, str | list[str]]:
+        if user != self.__owner and user not in self.__students:
+            logging.info(f"User: {user.name} requested for but is not in classroom: {self.__name}")
+            raise PermissionError("User not in classroom")
+        return {
+            "id": self.__id,
+            "owner_id": self.__owner.id,
+            "name": self.__name,
+            "section": self.__section or "",
+            "subject": self.__subject or "",
+            "room": self.__room or "",
+            "code": self.__code if user == self.__owner else "",
+            "students": [student.id for student in self.__students],
+            "items": [item.id for item in self.__items],
+        }
     
     def add_student(self, student: User) -> bool:
         if student in self.__students:

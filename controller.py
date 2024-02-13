@@ -57,6 +57,13 @@ class Controller:
             if classroom.owner == user or user in classroom.students:
                 classrooms.append(classroom)
         return classrooms
+    
+    def get_classroom(self, id: str) -> Classroom:
+        for classroom in self.__classrooms:
+            if classroom.id == id:
+                return classroom
+        logging.info(f"Failed to lookup classroom with ID: {id}")
+        raise LookupError(f"Classroom with ID: {id} not found")
 
     def create_classroom(
         self,
