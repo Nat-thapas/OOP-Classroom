@@ -4,13 +4,20 @@ from classroom import Classroom
 from session import Session
 from user import User
 
+
 class InvalidCredentials(Exception):
     pass
+
 
 class EmailAlreadyInUse(Exception):
     pass
 
-class Controller():
+
+class InvalidClassroomCode(Exception):
+    pass
+
+
+class Controller:
     def __init__(self) -> None:
         self.__sessions_controller: Session = Session()
         self.__users: list[User] = []
@@ -37,9 +44,38 @@ class Controller():
                 return token
         logging.info(f"User with email: {email} failed to login")
         raise InvalidCredentials("Email or password is incorrect")
-    
+
     def get_user(self, token: str) -> User:
         return self.__sessions_controller.get_user(token)
-    
+
     def check_token(self, token: str) -> bool:
         return self.__sessions_controller.check_token(token)
+
+    def get_classrooms_for_user(self, user: User) -> list[Classroom]:
+        classrooms: list[Classroom] = []
+        for classroom in self.__classrooms:
+            if classroom.owner == user or user in classroom.students:
+                classrooms.append(classroom)
+        return classrooms
+
+    def create_classroom(
+        self,
+        user: User,
+        name: str,
+        section: str | None,
+        subject: str | None,
+        room: str | None,
+    ) -> str:
+        classroom: Classroom = Classroom(user, name, section, subject, room)
+        self.__classrooms.append(classroom)
+        logging.info(f"Created classroom with id: {classroom.id}")
+        return classroom.id
+
+    def join_classroom(self, user: User, code: str) -> str:
+        for classroom in self.__classrooms:
+            if classroom.code == code:
+                classroom.add_student(user)
+                logging.info(f"User: {user.name} successfully join classroom: {classroom.name} with code")
+                return classroom.id
+        logging.info(f"User: {user.name} failed to join classroom with code: {code}")
+        raise InvalidClassroomCode("Invalid classroom code")

@@ -1,10 +1,16 @@
 import logging
 
-from fastapi import FastAPI, HTTPException, status
+from fastapi import FastAPI
 
-from controller import Controller, InvalidCredentials, EmailAlreadyInUse
-from user import User
+from controller import (
+    Controller,
+    EmailAlreadyInUse,
+    InvalidClassroomCode,
+    InvalidCredentials,
+)
 from http_exceptions import *
+from user import User
+from classroom import Classroom
 
 logging.basicConfig(
     level=logging.INFO, format="%(asctime)s:%(levelname)s:%(name)s: %(message)s"
@@ -20,7 +26,8 @@ async def home(token: str):
     if not controller.check_token(token):
         raise InvalidTokenHTTPException
     user: User = controller.get_user(token)
-    return {"status": "success", "message": f"You're {user.name}"}
+    classrooms: list[Classroom] = controller.get_classrooms_for_user(user)
+    return {"status": "success", "classrooms_id": [classroom.id for classroom in classrooms]}
 
 
 @app.post("/register")
@@ -39,3 +46,31 @@ async def login(email: str, password: str):
         return {"status": "success", "token": token}
     except InvalidCredentials:
         raise InvalidCredentialsHTTPException
+
+
+@app.post("/create-classroom")
+async def create_classroom(
+    token: str, name: str, section: str | None, subject: str | None, room: str | None
+):
+    if not controller.check_token(token):
+        raise InvalidTokenHTTPException
+    user: User = controller.get_user(token)
+    classroom_id: str = controller.create_classroom(user, name, section, subject, room)
+    return {"status": "success", "classroom_id": classroom_id}
+
+
+@app.post("/join-classroom")
+async def join_classroom(token: str, code: str):
+    if not controller.check_token(token):
+        raise InvalidTokenHTTPException
+    user: User = controller.get_user(token)
+    try:
+        classroom_id = controller.join_classroom(user, code)
+        return {"status": "success", "classroom_id": classroom_id}
+    except InvalidClassroomCode:
+        raise InvalidClassroomCodeHTTPException
+
+
+@app.get("/classroom/{classroom_id}")
+async def get_classroom(classroom_id: str):
+    pass
