@@ -1,6 +1,7 @@
 const apiURL = "http://127.0.0.1:8080";
 
 const classroomsDiv = document.getElementById("classrooms");
+const addClassroomButton = document.getElementById("add-classroom-button");
 
 async function checkToken(token) {
     const response = await fetch(`${apiURL}/verify?token=${token}`);
@@ -46,8 +47,42 @@ async function main() {
         classroomDiv.appendChild(classroomNameSpan);
         classroomDiv.appendChild(classroomSectionSpan);
         classroomDiv.appendChild(classroomOwnerSpan);
+        if (classroom.code) {
+            let classroomCodeSpan = document.createElement("span");
+            classroomCodeSpan.className = "classroom-code-display";
+            classroomCodeSpan.innerHTML = "Code: " + classroom.code;
+            classroomDiv.appendChild(classroomCodeSpan)
+        }
         classroomsDiv.appendChild(classroomDiv)
     });
 }
+
+async function joinOrCreateClass() {
+    const code = document.getElementById("classroom-code").value;
+    const token = localStorage.getItem("token");
+    if (code) {
+        const response = await fetch(`${apiURL}/join-classroom`, {
+            method: "POST",
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                token: token,
+                code: code
+            }),
+        });
+        if (response.status != 200) {
+            alert("Cannot join class, please check the classroom code");
+            return;
+        } else {
+            location.reload();
+            return;
+        }
+    } else {
+        window.location.href = "/create-classroom.html"
+    }
+}
+
+addClassroomButton.addEventListener("click", joinOrCreateClass);
 
 main();

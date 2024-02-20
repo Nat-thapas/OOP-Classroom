@@ -8,8 +8,11 @@
     <script src="index.js" defer></script>
 </head>
 <body>
-    <h1 style="display: inline-block;">Classrooms</h1>
-    <a href="create-classroom.html"><button class="add-button">+</button></a>
+    <div class="inline-input-button">
+        <h1 style="display: inline-block;">Classrooms</h1>
+        <input type="text" name="classroom-code" id="classroom-code" placeholder="Code">
+        <button class="add-button" id="add-classroom-button">+</button>
+    </div>
     <hr>
     <div id="classrooms"></div>
 </body>

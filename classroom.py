@@ -179,6 +179,7 @@ class Classroom:
             "section": self.__section or "",
             "subject": self.__subject or "",
             "room": self.__room or "",
+            "code": self.__code if user == self.__owner else "",
         }
     
     def long_dict(self, user: User) -> dict[str, str | list[str]]:

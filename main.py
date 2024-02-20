@@ -85,7 +85,9 @@ async def create_classroom(classroomInfo: ClassroomInfo):
 
 
 @app.post("/join-classroom", tags=["Classrooms"])
-async def join_classroom(token: str, code: str):
+async def join_classroom(classroomCode: ClassroomCode):
+    token: str = classroomCode.token
+    code: str = classroomCode.code
     if not controller.check_token(token):
         raise InvalidTokenHTTPException
     user: User = controller.get_user(token)

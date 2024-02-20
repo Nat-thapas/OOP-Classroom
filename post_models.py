@@ -15,3 +15,7 @@ class ClassroomInfo(BaseModel):
     subject: str | None
     section: str | None
     room: str | None
+
+class ClassroomCode(BaseModel):
+    token: str
+    code: str
