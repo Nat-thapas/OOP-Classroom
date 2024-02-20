@@ -167,7 +167,20 @@ class Classroom:
     def students(self) -> list[User]:
         return self.__students
     
-    def get_dict_repr(self, user: User) -> dict[str, str | list[str]]:
+    def short_dict(self, user: User) -> dict[str, str | list[str]]:
+        if user != self.__owner and user not in self.__students:
+            logging.info(f"User: {user.name} requested for but is not in classroom: {self.__name}")
+            raise PermissionError("User not in classroom")
+        return {
+            "id": self.__id,
+            "owner_id": self.__owner.id,
+            "name": self.__name,
+            "section": self.__section or "",
+            "subject": self.__subject or "",
+            "room": self.__room or "",
+        }
+    
+    def long_dict(self, user: User) -> dict[str, str | list[str]]:
         if user != self.__owner and user not in self.__students:
             logging.info(f"User: {user.name} requested for but is not in classroom: {self.__name}")
             raise PermissionError("User not in classroom")

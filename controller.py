@@ -17,6 +17,10 @@ class InvalidClassroomCode(Exception):
     pass
 
 
+class AlreadyInClassroom(Exception):
+    pass
+
+
 class Controller:
     def __init__(self) -> None:
         self.__sessions_controller: Session = Session()
@@ -81,6 +85,10 @@ class Controller:
     def join_classroom(self, user: User, code: str) -> str:
         for classroom in self.__classrooms:
             if classroom.code == code:
+                if classroom.owner == user:
+                    raise AlreadyInClassroom("User is the owner of the class")
+                if user in classroom.students:
+                    raise AlreadyInClassroom("User is a student of the class")
                 classroom.add_student(user)
                 logging.info(f"User: {user.name} successfully join classroom: {classroom.name} with code")
                 return classroom.id

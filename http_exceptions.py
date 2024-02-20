@@ -6,3 +6,4 @@ InvalidCredentialsHTTPException = HTTPException(status.HTTP_401_UNAUTHORIZED, "I
 InvalidClassroomCodeHTTPException = HTTPException(status.HTTP_400_BAD_REQUEST, "Invalid classroom code")
 ClassroomNotFoundHTTPException = HTTPException(status.HTTP_404_NOT_FOUND, "Classrooom not found")
 NotInClassroomHTTPException = HTTPException(status.HTTP_403_FORBIDDEN, "Not in that classroom")
+AlreadyInClassroomHTTPException = HTTPException(status.HTTP_400_BAD_REQUEST, "Already in classroom")
