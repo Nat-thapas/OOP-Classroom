@@ -71,9 +71,12 @@ async def login(login_credential: LoginCredential):
 
 
 @app.post("/create-classroom", tags=["Classrooms"])
-async def create_classroom(
-    token: str, name: str, section: str | None, subject: str | None, room: str | None
-):
+async def create_classroom(classroomInfo: ClassroomInfo):
+    token: str = classroomInfo.token
+    name: str = classroomInfo.name
+    section: str | None = classroomInfo.section
+    subject: str | None = classroomInfo.subject
+    room: str | None = classroomInfo.room
     if not controller.check_token(token):
         raise InvalidTokenHTTPException
     user: User = controller.get_user(token)

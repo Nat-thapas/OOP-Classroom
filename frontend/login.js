@@ -1,6 +1,6 @@
 const apiURL = "http://127.0.0.1:8080";
 
-const login_form = document.getElementById("login-form")
+const loginForm = document.getElementById("login-form")
 
 async function processLoginForm(evnt) {
     console.log("Form submit event recieved");
@@ -27,4 +27,4 @@ async function processLoginForm(evnt) {
     window.location.href = "/";
 }
 
-login_form.addEventListener("submit", processLoginForm);
+loginForm.addEventListener("submit", processLoginForm);

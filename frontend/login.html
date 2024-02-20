@@ -7,13 +7,15 @@
     <link rel="stylesheet" href="styles.css">
     <script src="login.js" defer></script>
 </head>
-<body>
+<body class="narrow-body">
+    <h1>Login</h1>
     <form action="/login" method="post" id="login-form">
-        <label for="email">Email</label>
-        <input type="text" name="email" id="email">
-        <label for="password">Password</label>
-        <input type="password" name="password" id="password">
-        <button type="submit">Login</button>
+        <label for="email">Email</label><br>
+        <input type="text" name="email" id="email"><br>
+        <label for="password">Password</label><br>
+        <input type="password" name="password" id="password"><br>
+        <a href="/register.html">Don't have an account?</a><br>
+        <button type="submit" class="submit-button">Login</button>
     </form>
 </body>
 </html>

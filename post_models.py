@@ -8,3 +8,10 @@ class RegisterCredential(BaseModel):
 class LoginCredential(BaseModel):
     email: str
     password: str
+
+class ClassroomInfo(BaseModel):
+    token: str
+    name: str
+    subject: str | None
+    section: str | None
+    room: str | None

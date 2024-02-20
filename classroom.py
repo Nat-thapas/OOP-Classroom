@@ -174,6 +174,7 @@ class Classroom:
         return {
             "id": self.__id,
             "owner_id": self.__owner.id,
+            "owner_name": self.__owner.name,
             "name": self.__name,
             "section": self.__section or "",
             "subject": self.__subject or "",
@@ -186,7 +187,7 @@ class Classroom:
             raise PermissionError("User not in classroom")
         return {
             "id": self.__id,
-            "owner_id": self.__owner.id,
+            "owner_id": self.__owner.id, # TODO: Change to user dict
             "name": self.__name,
             "section": self.__section or "",
             "subject": self.__subject or "",

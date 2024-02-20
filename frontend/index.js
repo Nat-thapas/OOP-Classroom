@@ -34,7 +34,18 @@ async function main() {
         let classroomDiv = document.createElement("div");
         classroomDiv.id = classroom.id;
         classroomDiv.className = "classroom";
-        classroomDiv.innerHTML = JSON.stringify(classroom);
+        let classroomNameSpan = document.createElement("span");
+        classroomNameSpan.className = "classroom-name";
+        let classroomSectionSpan = document.createElement("span");
+        classroomSectionSpan.className = "classroom-section";
+        let classroomOwnerSpan = document.createElement("span");
+        classroomOwnerSpan.className = "classroom-owner";
+        classroomNameSpan.innerHTML = classroom.name;
+        classroomSectionSpan.innerHTML = "Section: " +  classroom.section
+        classroomOwnerSpan.innerHTML = "Owner: " +  classroom.owner_name
+        classroomDiv.appendChild(classroomNameSpan);
+        classroomDiv.appendChild(classroomSectionSpan);
+        classroomDiv.appendChild(classroomOwnerSpan);
         classroomsDiv.appendChild(classroomDiv)
     });
 }
