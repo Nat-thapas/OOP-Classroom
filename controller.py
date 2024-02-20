@@ -5,7 +5,7 @@ from session import Session
 from user import User
 
 
-class InvalidCredentials(Exception):
+class InvalidCredential(Exception):
     pass
 
 
@@ -47,7 +47,7 @@ class Controller:
                 logging.info(f"User with email: {email} successfully logged in")
                 return token
         logging.info(f"User with email: {email} failed to login")
-        raise InvalidCredentials("Email or password is incorrect")
+        raise InvalidCredential("Email or password is incorrect")
 
     def get_user(self, token: str) -> User:
         return self.__sessions_controller.get_user(token)

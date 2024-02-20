@@ -1,29 +1,57 @@
 import logging
 
 from fastapi import FastAPI
+from fastapi.responses import RedirectResponse
+from fastapi.middleware.cors import CORSMiddleware
 
 from controller import (
     Controller,
     EmailAlreadyInUse,
     InvalidClassroomCode,
-    InvalidCredentials,
+    InvalidCredential,
     AlreadyInClassroom,
 )
 from http_exceptions import *
 from user import User
 from classroom import Classroom
+from post_models import *
 
 logging.basicConfig(
     level=logging.INFO, format="%(asctime)s:%(levelname)s:%(name)s: %(message)s"
 )
 
+
 app = FastAPI()
+
+origins = ["*"]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 controller = Controller()
 
 
+@app.get("/")
+async def home():
+    return RedirectResponse("/docs")
+
+
+@app.get("/verify")
+async def verify(token: str):
+    if not controller.check_token(token):
+        raise InvalidTokenHTTPException
+    return {"status": "valid"}
+
+
 @app.post("/register", tags=["Authentication"])
-async def register(name: str, email: str, password: str):
+async def register(register_credential: RegisterCredential):
+    name: str = register_credential.name
+    email: str = register_credential.email
+    password: str = register_credential.password
     try:
         token: str = controller.register(name, email, password)
         return {"status": "success", "token": token}
@@ -32,12 +60,14 @@ async def register(name: str, email: str, password: str):
 
 
 @app.post("/login", tags=["Authentication"])
-async def login(email: str, password: str):
+async def login(login_credential: LoginCredential):
+    email: str = login_credential.email
+    password: str = login_credential.password 
     try:
         token: str = controller.login(email, password)
         return {"status": "success", "token": token}
-    except InvalidCredentials:
-        raise InvalidCredentialsHTTPException
+    except InvalidCredential:
+        raise InvalidCredentialHTTPException
 
 
 @app.post("/create-classroom", tags=["Classrooms"])
