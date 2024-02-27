@@ -27,6 +27,9 @@ class User:
     @property
     def email(self) -> str:
         return self.__email
+    
+    def dict(self):
+        return {"id": self.__id, "name": self.__name, "email": self.__email}
 
     def check_password(self, password: str) -> bool:
         try:

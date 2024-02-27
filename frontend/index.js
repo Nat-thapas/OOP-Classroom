@@ -30,7 +30,7 @@ async function main() {
     }
     const classrooms = await getClasssrooms(token);
     classrooms.forEach(classroom => {
-        console.log("Adding classroom: ")
+        console.log("Adding classroom: ");
         console.log(classroom);
         let classroomDiv = document.createElement("div");
         classroomDiv.id = classroom.id;
@@ -42,8 +42,8 @@ async function main() {
         let classroomOwnerSpan = document.createElement("span");
         classroomOwnerSpan.className = "classroom-owner";
         classroomNameSpan.innerHTML = classroom.name;
-        classroomSectionSpan.innerHTML = "Section: " +  classroom.section
-        classroomOwnerSpan.innerHTML = "Owner: " +  classroom.owner_name
+        classroomSectionSpan.innerHTML = "Section: " +  classroom.section;
+        classroomOwnerSpan.innerHTML = "Owner: " +  classroom.owner_name;
         classroomDiv.appendChild(classroomNameSpan);
         classroomDiv.appendChild(classroomSectionSpan);
         classroomDiv.appendChild(classroomOwnerSpan);
@@ -51,9 +51,13 @@ async function main() {
             let classroomCodeSpan = document.createElement("span");
             classroomCodeSpan.className = "classroom-code-display";
             classroomCodeSpan.innerHTML = "Code: " + classroom.code;
-            classroomDiv.appendChild(classroomCodeSpan)
+            classroomDiv.appendChild(classroomCodeSpan);
         }
-        classroomsDiv.appendChild(classroomDiv)
+        classroomDiv.addEventListener('click', function() {
+            localStorage.setItem("currentClassroom", classroom.id);
+            location.href = "/classroom.html";
+        }, false);
+        classroomsDiv.appendChild(classroomDiv);
     });
 }
 

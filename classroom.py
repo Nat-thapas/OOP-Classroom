@@ -21,6 +21,10 @@ class Topic:
         self.__name: str = name
 
     @property
+    def id(self):
+        return self.__id
+
+    @property
     def name(self):
         return self.__name
 
@@ -30,18 +34,28 @@ class Attachment:
 
 
 class Rubric:
-    pass
+    def __init__(self, name: str) -> None:
+        self.__id: str = str(uuid4())
+        self.__name: str = name
+
+    @property
+    def id(self):
+        return self.__id
+
+    @property
+    def name(self):
+        return self.__name
 
 
 class Item:
     def __init__(
         self,
-        topic: Topic,
+        topic: Topic | None,
         attachments: list[Attachment] | None,
         assigned_to: list[User] | None,
     ) -> None:
         self.__id: str = str(uuid4())
-        self.__topic: Topic = topic
+        self.__topic: Topic | None = topic
         self.__time_created: float = time.time()
         self.__attachments: list[Attachment] | None = attachments
         self.__assigned_to: list[User] | None = assigned_to
@@ -49,12 +63,24 @@ class Item:
     @property
     def id(self):
         return self.__id
+    
+    def base_dict(self):
+        return {
+            "id": self.__id,
+            "topic": self.__topic,
+            "time_created": self.__time_created,
+            "attachments": ["TODO: Implement this" for attachment in self.__attachments] if self.__attachments else None,
+            "assigned_to": [user.id for user in self.__assigned_to] if self.__assigned_to else None
+        }
+    
+    def dict(self):
+        return self.base_dict()
 
 
 class Announcement(Item):
     def __init__(
         self,
-        topic: Topic,
+        topic: Topic | None,
         attachments: list[Attachment] | None,
         assigned_to: list[User] | None,
         announcement_text: str,
@@ -62,11 +88,16 @@ class Announcement(Item):
         super().__init__(topic, attachments, assigned_to)
         self.__announcement_text: str = announcement_text
 
+    def dict(self):
+        data_dict = self.base_dict()
+        data_dict["announcement_text"] = self.__announcement_text
+        return data_dict
+
 
 class Assignment(Item):
     def __init__(
         self,
-        topic: Topic,
+        topic: Topic | None,
         attachments: list[Attachment] | None,
         assigned_to: list[User] | None,
         title: str,
@@ -82,11 +113,20 @@ class Assignment(Item):
         self.__point: int | None = point
         self.__rubric: Rubric | None = rubric
 
+    def dict(self):
+        data_dict = self.base_dict()
+        data_dict["title"] = self.__title
+        data_dict["instruction"] = self.__instruction
+        data_dict["due_date"] = self.__due_date.timestamp() if self.__due_date else None
+        data_dict["point"] = self.__point
+        data_dict["rubric"] = None # self.__rubric.dict()
+        return data_dict
+
 
 class Question(Item):
     def __init__(
         self,
-        topic: Topic,
+        topic: Topic | None,
         attachments: list[Attachment] | None,
         assigned_to: list[User] | None,
         question_text: str,
@@ -100,11 +140,19 @@ class Question(Item):
         self.__due_date: datetime | None = due_date
         self.__point: int | None = point
 
+    def dict(self):
+        data_dict = self.base_dict()
+        data_dict["question_text"] = self.__question_text
+        data_dict["instruction"] = self.__instruction
+        data_dict["due_date"] = self.__due_date.timestamp() if self.__due_date else None
+        data_dict["point"] = self.__point
+        return data_dict
+
 
 class MultipleChoiceQuestion(Question):
     def __init__(
         self,
-        topic: Topic,
+        topic: Topic | None,
         attachments: list[Attachment] | None,
         assigned_to: list[User] | None,
         question_text: str,
@@ -118,11 +166,16 @@ class MultipleChoiceQuestion(Question):
         )
         self.__choices: list[str] = choices
 
+    def dict(self):
+        data_dict = self.base_dict()
+        data_dict["choices"] = [choice for choice in self.__choices]
+        return data_dict
+
 
 class Material(Item):
     def __init__(
         self,
-        topic: Topic,
+        topic: Topic | None,
         attachments: list[Attachment] | None,
         assigned_to: list[User] | None,
         title: str,
@@ -131,6 +184,12 @@ class Material(Item):
         super().__init__(topic, attachments, assigned_to)
         self.__title: str = title
         self.__description: str | None = description
+
+    def dict(self):
+        data_dict = self.base_dict()
+        data_dict["title"] = self.__title
+        data_dict["description"] = self.__description
+        return data_dict
 
 
 class Classroom:
@@ -188,7 +247,7 @@ class Classroom:
             raise PermissionError("User not in classroom")
         return {
             "id": self.__id,
-            "owner_id": self.__owner.id, # TODO: Change to user dict
+            "owner_id": self.__owner.id,
             "name": self.__name,
             "section": self.__section or "",
             "subject": self.__subject or "",
@@ -198,6 +257,24 @@ class Classroom:
             "items": [item.id for item in self.__items],
         }
     
+    def verify_user(self, user: User) -> bool:
+        if user != self.__owner and user not in self.__students:
+            logging.info(f"User: {user.name} requested for but is not in classroom: {self.__name}")
+            raise PermissionError("User not in classroom")
+        return True
+    
+    def get_topic(self, id: str) -> Topic:
+        for topic in self.__topics:
+            if topic.id == id:
+                return topic
+        raise LookupError("Topic not found")
+    
+    def get_rubric(self, id: str) -> Rubric:
+        for rubric in self.__rubrics:
+            if rubric.id == id:
+                return rubric
+        raise LookupError("Rubric not found")
+
     def add_student(self, student: User) -> bool:
         if student in self.__students:
             logging.info(f"Student: {student.name} is already in classroom: {self.__name}")
@@ -216,7 +293,7 @@ class Classroom:
 
     def add_announcement(
         self,
-        topic: Topic,
+        topic: Topic | None,
         attachments: list[Attachment] | None,
         assigned_to: list[User] | None,
         announcement_text: str,
@@ -229,7 +306,7 @@ class Classroom:
 
     def add_assignment(
         self,
-        topic: Topic,
+        topic: Topic | None,
         attachments: list[Attachment] | None,
         assigned_to: list[User] | None,
         title: str,
@@ -246,7 +323,7 @@ class Classroom:
 
     def add_question(
         self,
-        topic: Topic,
+        topic: Topic | None,
         attachments: list[Attachment] | None,
         assigned_to: list[User] | None,
         question_text: str,
@@ -262,7 +339,7 @@ class Classroom:
 
     def add_multiple_choice_question(
         self,
-        topic: Topic,
+        topic: Topic | None,
         attachments: list[Attachment] | None,
         assigned_to: list[User] | None,
         question_text: str,
@@ -286,7 +363,7 @@ class Classroom:
 
     def add_material(
         self,
-        topic: Topic,
+        topic: Topic | None,
         attachments: list[Attachment] | None,
         assigned_to: list[User] | None,
         title: str,
@@ -297,6 +374,12 @@ class Classroom:
         )
         logging.info(f"Added material: {topic} to classroom: {self.__name}")
         self.__items.append(material)
+
+    def get_item(self, id: str) -> Item:
+        for item in self.__items:
+            if item.id == id:
+                return item
+        raise LookupError("Item not found")
 
     @property
     def topics(self) -> list[Topic]:

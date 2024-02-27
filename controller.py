@@ -48,8 +48,14 @@ class Controller:
                 return token
         logging.info(f"User with email: {email} failed to login")
         raise InvalidCredential("Email or password is incorrect")
+    
+    def get_user(self, id: str) -> User:
+        for user in self.__users:
+            if user.id == id:
+                return user
+        raise LookupError("User not found")
 
-    def get_user(self, token: str) -> User:
+    def get_user_from_token(self, token: str) -> User:
         return self.__sessions_controller.get_user(token)
 
     def check_token(self, token: str) -> bool:
