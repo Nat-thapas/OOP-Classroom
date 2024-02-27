@@ -4,6 +4,7 @@ import random
 import os
 from uuid import uuid4
 from datetime import datetime
+from typing import Sequence
 
 from user import User
 
@@ -226,6 +227,10 @@ class Classroom:
     def students(self) -> list[User]:
         return self.__students
     
+    @property
+    def items(self) -> Sequence[Item]:
+        return self.__items
+    
     def short_dict(self, user: User) -> dict[str, str | list[str]]:
         if user != self.__owner and user not in self.__students:
             logging.info(f"User: {user.name} requested for but is not in classroom: {self.__name}")
@@ -283,13 +288,15 @@ class Classroom:
         logging.info(f"Added student: {student.name} to classroom: {self.__name}")
         return True
 
-    def add_topic(self, name: str) -> None:
+    def add_topic(self, name: str) -> Topic:
         for topic in self.__topics:
             if topic.name == name:
                 logging.info(f"Topic: {name} already exist in classroom: {self.__name}")
                 raise TopicAlreadyExist("Topic already exist")
         logging.info(f"Creating topic: {name} for classroom: {self.__name}")
-        self.__topics.append(Topic(name))
+        topic: Topic = Topic(name)
+        self.__topics.append(topic)
+        return topic
 
     def add_announcement(
         self,
@@ -297,12 +304,13 @@ class Classroom:
         attachments: list[Attachment] | None,
         assigned_to: list[User] | None,
         announcement_text: str,
-    ) -> None:
+    ) -> Announcement:
         announcement: Announcement = Announcement(
             topic, attachments, assigned_to, announcement_text
         )
         logging.info(f"Added announcement: {topic} to classroom: {self.__name}")
         self.__items.append(announcement)
+        return announcement
 
     def add_assignment(
         self,
@@ -314,12 +322,13 @@ class Classroom:
         due_date: datetime | None,
         point: int | None,
         rubric: Rubric | None,
-    ) -> None:
+    ) -> Assignment:
         assignment: Assignment = Assignment(
             topic, attachments, assigned_to, title, instruction, due_date, point, rubric
         )
         logging.info(f"Added assignment: {topic} to classroom: {self.__name}")
         self.__items.append(assignment)
+        return assignment
 
     def add_question(
         self,
@@ -330,12 +339,13 @@ class Classroom:
         instruction: str | None,
         due_date: datetime | None,
         point: int | None,
-    ) -> None:
+    ) -> Question:
         question: Question = Question(
             topic, attachments, assigned_to, question_text, instruction, due_date, point
         )
         logging.info(f"Added question: {topic} to classroom: {self.__name}")
         self.__items.append(question)
+        return question
 
     def add_multiple_choice_question(
         self,
@@ -347,7 +357,7 @@ class Classroom:
         due_date: datetime | None,
         point: int | None,
         choices: list[str],
-    ) -> None:
+    ) -> MultipleChoiceQuestion:
         question: MultipleChoiceQuestion = MultipleChoiceQuestion(
             topic,
             attachments,
@@ -360,6 +370,7 @@ class Classroom:
         )
         logging.info(f"Added multiple choices questions: {topic} to classroom: {self.__name}")
         self.__items.append(question)
+        return question
 
     def add_material(
         self,
@@ -368,12 +379,13 @@ class Classroom:
         assigned_to: list[User] | None,
         title: str,
         description: str | None,
-    ) -> None:
+    ) -> Material:
         material: Material = Material(
             topic, attachments, assigned_to, title, description
         )
         logging.info(f"Added material: {topic} to classroom: {self.__name}")
         self.__items.append(material)
+        return material
 
     def get_item(self, id: str) -> Item:
         for item in self.__items:

@@ -156,7 +156,8 @@ async def add_material(classroom_id: str, material: ClassMaterial):
             else:
                 assigned_to = None
             # TODO: Add attachment
-            classroom.add_material(topic, None, assigned_to, material.title, material.description)
+            item_id: str = classroom.add_material(topic, None, assigned_to, material.title, material.description).id
+            return {"status": "success", "item_id": item_id}
         except LookupError:
             raise ItemNotFoundHTTPException
     except LookupError:
@@ -187,7 +188,8 @@ async def add_announcement(classroom_id: str, announcement: ClassAnnouncement):
             else:
                 assigned_to = None
             # TODO: Add attachment
-            classroom.add_announcement(topic, None, assigned_to, announcement.announcement_text)
+            item_id: str = classroom.add_announcement(topic, None, assigned_to, announcement.announcement_text).id
+            return {"status": "success", "item_id": item_id}
         except LookupError:
             raise ItemNotFoundHTTPException
     except LookupError:
@@ -220,7 +222,8 @@ async def add_assignment(classroom_id: str, assignment: ClassAssignment):
                 assigned_to = None
             due_date: datetime | None = datetime.fromtimestamp(assignment.due_date) if assignment.due_date else None
             # TODO: Add attachment
-            classroom.add_assignment(topic, None, assigned_to, assignment.title, assignment.instruction, due_date, assignment.point, rubric)
+            item_id: str = classroom.add_assignment(topic, None, assigned_to, assignment.title, assignment.instruction, due_date, assignment.point, rubric).id
+            return {"status": "success", "item_id": item_id}
         except LookupError:
             raise ItemNotFoundHTTPException
     except LookupError:
@@ -241,6 +244,7 @@ async def add_question(classroom_id: str, question: ClassQuestion):
         try:
             topic = classroom.get_topic(question.topic_id) if question.topic_id else None
             assigned_to: list[User] | None
+            # TODO: Move convert logic to controller
             if question.assigned_to:
                 assigned_to = []
                 for user_id in question.assigned_to:
@@ -252,13 +256,29 @@ async def add_question(classroom_id: str, question: ClassQuestion):
                 assigned_to = None
             due_date: datetime | None = datetime.fromtimestamp(question.due_date) if question.due_date else None
             # TODO: Add attachment
-            classroom.add_question(topic, None, assigned_to, question.question_text, question.instruction, due_date, question.point)
+            item_id: str = classroom.add_question(topic, None, assigned_to, question.question_text, question.instruction, due_date, question.point).id
+            return {"status": "success", "item_id": item_id}
         except LookupError:
             raise ItemNotFoundHTTPException
     except LookupError:
         raise ClassroomNotFoundHTTPException
     except PermissionError:
         raise NotClassroomOwnerHTTPException
+    
+@app.get("/classroom/{classroom_id}/items", tags=["Classroom"])
+async def get_items(token: str, classroom_id: str):
+    if not controller.check_token(token):
+        raise InvalidTokenHTTPException
+    user: User = controller.get_user_from_token(token)
+    try:
+        classroom: Classroom = controller.get_classroom(classroom_id)
+        if not classroom.verify_user(user):
+            raise PermissionError("User not in classroom")
+        return {"status": "success", "items_data": [item.dict() for item in classroom.items]}
+    except LookupError:
+        raise ClassroomNotFoundHTTPException
+    except PermissionError:
+        raise NotInClassroomHTTPException
     
 @app.get("/classroom/{classroom_id}/item/{item_id}", tags=["Classroom"])
 async def get_item(token: str, classroom_id: str, item_id: str):
