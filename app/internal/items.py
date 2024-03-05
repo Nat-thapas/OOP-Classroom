@@ -241,6 +241,6 @@ class Question(
             "due_date": self.__due_date,
             "point": self.__point,
         }
-    
+
 class MultipleChoiceQuestion(Question):
     pass
