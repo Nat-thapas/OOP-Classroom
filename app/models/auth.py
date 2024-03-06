@@ -1,17 +1,19 @@
-from pydantic import BaseModel, EmailStr
+from typing import Annotated
+
+from pydantic import BaseModel, EmailStr, Field
 
 
 class RegisterModel(BaseModel):
-    username: str
+    username: Annotated[str, Field(min_length=3, max_length=64)]
     email: EmailStr
-    password: str
+    password: Annotated[str, Field(min_length=8, max_length=64)]
 
 
 class LoginModel(BaseModel):
     email: EmailStr
-    password: str
+    password: Annotated[str, Field(min_length=8, max_length=64)]
 
 
 class ChangePasswordModel(BaseModel):
-    old_password: str
-    new_password: str
+    old_password: Annotated[str, Field(min_length=8, max_length=64)]
+    new_password: Annotated[str, Field(min_length=8, max_length=64)]

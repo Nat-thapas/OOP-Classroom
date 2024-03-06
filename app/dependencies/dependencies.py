@@ -7,9 +7,9 @@ from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from jose import JWTError, jwt
 
-from .config.config import get_settings
-from .internal.user import User
-from .internal.controller import controller
+from ..config.config import get_settings
+from ..internal.user import User
+from ..internal.controller import controller
 
 settings = get_settings()
 

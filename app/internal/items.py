@@ -6,7 +6,6 @@ from .user import User
 from .attachment import Attachment
 from .submission import Submission
 from .topic import Topic
-from .rubric import Rubric
 
 
 class BaseItem(ABC):
@@ -14,15 +13,19 @@ class BaseItem(ABC):
         self, attachments: list[Attachment], assigned_to_students: list[User], **kwargs
     ) -> None:
         super().__init__(**kwargs)
-        self.__id: str = str(uuid4())
-        self.__time_created: datetime = datetime.now()
-        self.__time_edited: datetime = datetime.now()
-        self.__attachments: list[Attachment] = attachments
-        self.__assigned_to_students: list[User] = assigned_to_students
+        self._id: str = str(uuid4())
+        self._time_created: datetime = datetime.now()
+        self._time_edited: datetime = datetime.now()
+        self._attachments: list[Attachment] = attachments
+        self._assigned_to_students: list[User] = assigned_to_students
 
     @property
     def id(self) -> str:
-        return self.__id
+        return self._id
+
+    @property
+    def assigned_to_students(self) -> list[User]:
+        return self._assigned_to_students
 
     @abstractmethod
     def to_dict(self) -> dict:
@@ -69,16 +72,6 @@ class PointMixin:
         return self.__point
 
 
-class RubricMixin:
-    def __init__(self, rubric: Rubric | None, **kwargs) -> None:
-        super().__init__(**kwargs)
-        self.__rubric: Rubric | None = rubric
-
-    @property
-    def rubric(self) -> Rubric | None:
-        return self.__rubric
-
-
 class DueDateMixin:
     def __init__(self, due_date: datetime | None, **kwargs) -> None:
         super().__init__(**kwargs)
@@ -102,13 +95,11 @@ class SubmissionsMixin:
 class Announcement(BaseItem):
     def __init__(
         self,
-        topic: Topic | None,
         attachments: list[Attachment],
         assigned_to_students: list[User],
         announcement_text: str,
     ) -> None:
         super().__init__(
-            topic=topic,
             attachments=attachments,
             assigned_to_students=assigned_to_students,
         )
@@ -120,10 +111,10 @@ class Announcement(BaseItem):
 
     def to_dict(self) -> dict:
         return {
-            "id": self.__id,
-            "time_created": self.__time_created,
-            "time_edited": self.__time_edited,
-            "attachments": [attachment.to_dict() for attachment in self.__attachments],
+            "id": self._id,
+            "time_created": self._time_created,
+            "time_edited": self._time_edited,
+            "attachments": [attachment.to_dict() for attachment in self._attachments],
             "announcement_text": self.__announcement_text,
         }
 
@@ -147,10 +138,10 @@ class Material(TopicMixin, TitleMixin, DescriptionMixin, BaseItem):
 
     def to_dict(self) -> dict:
         return {
-            "id": self.__id,
-            "time_created": self.__time_created,
-            "time_edited": self.__time_edited,
-            "attachments": [attachment.to_dict() for attachment in self.__attachments],
+            "id": self._id,
+            "time_created": self._time_created,
+            "time_edited": self._time_edited,
+            "attachments": [attachment.to_dict() for attachment in self._attachments],
             "topic": self.__topic.to_dict() if self.__topic else "",
             "title": self.__title,
             "description": self.__description,
@@ -188,10 +179,10 @@ class Assignment(
 
     def to_dict(self) -> dict:
         return {
-            "id": self.__id,
-            "time_created": self.__time_created,
-            "time_edited": self.__time_edited,
-            "attachments": [attachment.to_dict() for attachment in self.__attachments],
+            "id": self._id,
+            "time_created": self._time_created,
+            "time_edited": self._time_edited,
+            "attachments": [attachment.to_dict() for attachment in self._attachments],
             "topic": self.__topic.to_dict() if self.__topic else "",
             "title": self.__title,
             "description": self.__description,
@@ -231,10 +222,10 @@ class Question(
 
     def to_dict(self) -> dict:
         return {
-            "id": self.__id,
-            "time_created": self.__time_created,
-            "time_edited": self.__time_edited,
-            "attachments": [attachment.to_dict() for attachment in self.__attachments],
+            "id": self._id,
+            "time_created": self._time_created,
+            "time_edited": self._time_edited,
+            "attachments": [attachment.to_dict() for attachment in self._attachments],
             "topic": self.__topic.to_dict() if self.__topic else "",
             "title": self.__title,
             "description": self.__description,
@@ -243,4 +234,38 @@ class Question(
         }
 
 class MultipleChoiceQuestion(Question):
-    pass
+    def __init__(
+        self,
+        topic: Topic | None,
+        attachments: list[Attachment],
+        assigned_to_students: list[User],
+        title: str,
+        description: str | None,
+        due_date: datetime | None,
+        point: int | None,
+        choices: list[str],
+    ):
+        super().__init__(
+            topic=topic,
+            attachments=attachments,
+            assigned_to_students=assigned_to_students,
+            title=title,
+            description=description,
+            due_date=due_date,
+            point=point,
+        )
+        self.__choices: list[str] = choices
+
+    def to_dict(self) -> dict:
+        return {
+            "id": self._id,
+            "time_created": self._time_created,
+            "time_edited": self._time_edited,
+            "attachments": [attachment.to_dict() for attachment in self._attachments],
+            "topic": self.__topic.to_dict() if self.__topic else "",
+            "title": self.__title,
+            "description": self.__description,
+            "due_date": self.__due_date,
+            "point": self.__point,
+            "choices": self.__choices,
+        }

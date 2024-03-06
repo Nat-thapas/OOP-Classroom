@@ -6,6 +6,10 @@ class Topic:
         self.__name: str = name
 
     @property
+    def id(self) -> str:
+        return self.__id
+
+    @property
     def name(self) -> str:
         return self.__name
 

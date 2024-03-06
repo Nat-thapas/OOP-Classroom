@@ -1,0 +1,2 @@
+class EmailAlreadyInUse(Exception):
+    pass
