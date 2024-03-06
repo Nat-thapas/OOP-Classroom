@@ -15,7 +15,7 @@ settings = get_settings()
 
 password_hasher = PasswordHasher()
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
 
 credentials_exception = HTTPException(
     status_code=status.HTTP_401_UNAUTHORIZED,
@@ -24,7 +24,7 @@ credentials_exception = HTTPException(
 )
 
 
-def verify_password(plain_password: str, hashed_password: str) -> bool:
+def verify_password(hashed_password: str, plain_password: str) -> bool:
     try:
         password_hasher.verify(hashed_password, plain_password)
     except VerifyMismatchError:
@@ -46,11 +46,13 @@ def create_access_token(data: dict) -> str:
     return encoded_jwt
 
 
-def authenticate_user(email: str, password: str) -> User | None:
-    user = controller.get_user_by_email(email)
+def authenticate_user(username_or_email: str, password: str) -> User | None:
+    user = controller.get_user_by_email(
+        username_or_email
+    ) or controller.get_user_by_username(username_or_email)
     if not user:
         return None
-    if not verify_password(password, user.hashed_password):
+    if not verify_password(user.hashed_password, password):
         return None
     return user
 

@@ -1,12 +1,10 @@
 from typing import BinaryIO
 
-from ..dependencies.dependencies import get_password_hash
 from ..exceptions.classroom import InvalidCode, UserAlreadyInClassroom
-from ..exceptions.user import EmailAlreadyInUse
+from ..exceptions.user import EmailAlreadyInUse, UsernameAlreadyInUse
 from .attachment import Attachment
 from .classroom import Classroom
 from .user import User
-
 
 class Controller:
     def __init__(self) -> None:
@@ -14,10 +12,12 @@ class Controller:
         self.__classrooms: list[Classroom] = []
         self.__attachments: list[Attachment] = []
 
-    def create_user(self, username: str, email: str, password: str) -> User:
+    def create_user(self, username: str, email: str, password_hash: str) -> User:
         if self.get_user_by_email(email) is not None:
             raise EmailAlreadyInUse("Email already in use")
-        user = User(username, email, get_password_hash(password))
+        if self.get_user_by_username(username) is not None:
+            raise UsernameAlreadyInUse("Username already in use")
+        user = User(username, email, password_hash)
         self.__users.append(user)
         return user
 
@@ -30,6 +30,12 @@ class Controller:
     def get_user_by_email(self, email: str) -> User | None:
         for user in self.__users:
             if user.email == email:
+                return user
+        return None
+
+    def get_user_by_username(self, username: str) -> User | None:
+        for user in self.__users:
+            if user.username == username:
                 return user
         return None
 

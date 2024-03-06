@@ -1,5 +1,8 @@
-from fastapi import APIRouter, HTTPException, status
+from typing import Annotated
+
+from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.responses import JSONResponse
+from fastapi.security import OAuth2PasswordRequestForm
 
 from ..dependencies.dependencies import (
     authenticate_user,
@@ -8,7 +11,7 @@ from ..dependencies.dependencies import (
 )
 from ..exceptions.user import EmailAlreadyInUse
 from ..internal.controller import controller
-from ..models.auth import LoginModel, RegisterModel
+from ..models.auth import RegisterModel
 
 router = APIRouter(
     prefix="/auth",
@@ -36,16 +39,14 @@ async def register(body: RegisterModel):
 
 
 @router.post("/login")
-async def login(body: LoginModel):
-    user = authenticate_user(body.email, body.password)
+async def login(body: Annotated[OAuth2PasswordRequestForm, Depends()]):
+    user = authenticate_user(body.username, body.password)
 
     if user is None:
         raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials"
+            status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid credentials"
         )
 
-    return JSONResponse(
-        status_code=status.HTTP_200_OK,
-        content={"message": "User logged in successfully."},
-        headers={"Authorization": create_access_token(data={"id": user.id})},
-    )
+    token = create_access_token(data={"id": user.id})
+
+    return {"access_token": token, "token_type": "bearer"}

@@ -9,11 +9,6 @@ class RegisterModel(BaseModel):
     password: Annotated[str, Field(min_length=8, max_length=64)]
 
 
-class LoginModel(BaseModel):
-    email: EmailStr
-    password: Annotated[str, Field(min_length=8, max_length=64)]
-
-
 class ChangePasswordModel(BaseModel):
     old_password: Annotated[str, Field(min_length=8, max_length=64)]
     new_password: Annotated[str, Field(min_length=8, max_length=64)]
