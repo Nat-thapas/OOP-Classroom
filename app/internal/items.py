@@ -35,61 +35,72 @@ class BaseItem(ABC):
 class TopicMixin:
     def __init__(self, topic: Topic | None, **kwargs) -> None:
         super().__init__(**kwargs)
-        self.__topic: Topic | None = topic
+        self._topic: Topic | None = topic
 
     @property
     def topic(self) -> Topic | None:
-        return self.__topic
+        return self._topic
 
 
 class TitleMixin:
     def __init__(self, title: str, **kwargs) -> None:
         super().__init__(**kwargs)
-        self.__title: str = title
+        self._title: str = title
 
     @property
     def title(self) -> str:
-        return self.__title
+        return self._title
 
 
 class DescriptionMixin:
     def __init__(self, description: str | None, **kwargs) -> None:
         super().__init__(*kwargs)
-        self.__description: str | None = description
+        self._description: str | None = description
 
     @property
     def description(self) -> str | None:
-        return self.__description
+        return self._description
 
 
 class PointMixin:
     def __init__(self, point: int | None, **kwargs) -> None:
         super().__init__(**kwargs)
-        self.__point: int | None = point
+        self._point: int | None = point
 
     @property
     def point(self) -> int | None:
-        return self.__point
+        return self._point
 
 
 class DueDateMixin:
     def __init__(self, due_date: datetime | None, **kwargs) -> None:
         super().__init__(**kwargs)
-        self.__due_date: datetime | None = due_date
+        self._due_date: datetime | None = due_date
 
     @property
     def due_date(self) -> datetime | None:
-        return self.__due_date
+        return self._due_date
 
 
 class SubmissionsMixin:
     def __init__(self, **kwargs) -> None:
         super().__init__(**kwargs)
-        self.__submissions: dict[User, Submission] = {}
+        self._submissions: list[Submission] = []
 
     @property
-    def submissions(self) -> dict[User, Submission]:
-        return self.__submissions
+    def submissions(self) -> list[Submission]:
+        return self._submissions
+
+    def create_submission(self, user: User, attachments: list[Attachment]) -> Submission:
+        submission = Submission(user, attachments)
+        self._submissions.append(submission)
+        return submission
+
+    def get_submission_for_user(self, user: User) -> Submission | None:
+        for submission in self._submissions:
+            if submission.owner == user:
+                return submission
+        return None
 
 
 class Announcement(BaseItem):
@@ -142,9 +153,9 @@ class Material(TopicMixin, TitleMixin, DescriptionMixin, BaseItem):
             "time_created": self._time_created,
             "time_edited": self._time_edited,
             "attachments": [attachment.to_dict() for attachment in self._attachments],
-            "topic": self.__topic.to_dict() if self.__topic else "",
-            "title": self.__title,
-            "description": self.__description,
+            "topic": self._topic.to_dict() if self._topic else "",
+            "title": self._title,
+            "description": self._description,
         }
 
 
@@ -183,11 +194,11 @@ class Assignment(
             "time_created": self._time_created,
             "time_edited": self._time_edited,
             "attachments": [attachment.to_dict() for attachment in self._attachments],
-            "topic": self.__topic.to_dict() if self.__topic else "",
-            "title": self.__title,
-            "description": self.__description,
-            "due_date": self.__due_date,
-            "point": self.__point,
+            "topic": self._topic.to_dict() if self._topic else "",
+            "title": self._title,
+            "description": self._description,
+            "due_date": self._due_date,
+            "point": self._point,
         }
 
 
@@ -226,11 +237,11 @@ class Question(
             "time_created": self._time_created,
             "time_edited": self._time_edited,
             "attachments": [attachment.to_dict() for attachment in self._attachments],
-            "topic": self.__topic.to_dict() if self.__topic else "",
-            "title": self.__title,
-            "description": self.__description,
-            "due_date": self.__due_date,
-            "point": self.__point,
+            "topic": self._topic.to_dict() if self._topic else "",
+            "title": self._title,
+            "description": self._description,
+            "due_date": self._due_date,
+            "point": self._point,
         }
 
 class MultipleChoiceQuestion(Question):
@@ -262,10 +273,10 @@ class MultipleChoiceQuestion(Question):
             "time_created": self._time_created,
             "time_edited": self._time_edited,
             "attachments": [attachment.to_dict() for attachment in self._attachments],
-            "topic": self.__topic.to_dict() if self.__topic else "",
-            "title": self.__title,
-            "description": self.__description,
-            "due_date": self.__due_date,
-            "point": self.__point,
+            "topic": self._topic.to_dict() if self._topic else "",
+            "title": self._title,
+            "description": self._description,
+            "due_date": self._due_date,
+            "point": self._point,
             "choices": self.__choices,
         }

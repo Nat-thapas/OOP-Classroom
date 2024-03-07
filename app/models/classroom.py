@@ -38,3 +38,7 @@ class CreateClassroomItemModel(BaseModel):
     due_date: datetime | None
     point: Annotated[int, Field(ge=0)] | None
     choices: Annotated[list[str], MinLen(1)] | None
+
+
+class SubmissionModel(BaseModel):
+    attachments_id: Annotated[list[str], MaxLen(8)]

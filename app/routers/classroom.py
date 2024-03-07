@@ -3,27 +3,29 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from ..constants.enums import ClassroomItemType
 from ..dependencies.dependencies import get_current_user
 from ..internal.controller import controller
+from ..internal.items import SubmissionsMixin
 from ..internal.user import User
 from ..models.classroom import (
     CreateClassroomItemModel,
     CreateClassroomModel,
     JoinClassroomModel,
+    SubmissionModel,
 )
 
 router = APIRouter(
-    prefix="/classroom",
+    prefix="/classrooms",
     tags=["Classroom"],
     responses={404: {"description": "Not found"}},
 )
 
 
-@router.get("/classrooms")
+@router.get("/")
 async def get_classrooms(user: User = Depends(get_current_user)):
     classrooms = controller.get_classrooms_for_user(user)
     return [classroom.to_dict() for classroom in classrooms]
 
 
-@router.post("/classrooms")
+@router.post("/")
 async def create_classroom(
     body: CreateClassroomModel, user: User = Depends(get_current_user)
 ):
@@ -33,7 +35,7 @@ async def create_classroom(
     return classroom.to_dict()
 
 
-@router.put("/classrooms")
+@router.put("/")
 async def join_classroom(
     body: JoinClassroomModel, user: User = Depends(get_current_user)
 ):
@@ -46,7 +48,7 @@ async def join_classroom(
     return classroom.to_dict()
 
 
-@router.get("/classrooms/{classroom_id}")
+@router.get("/{classroom_id}")
 async def get_classroom(classroom_id: str, user: User = Depends(get_current_user)):
     classroom = controller.get_classroom_by_id(classroom_id)
     if classroom is None:
@@ -57,7 +59,7 @@ async def get_classroom(classroom_id: str, user: User = Depends(get_current_user
     return classroom.to_dict(include_code=include_code, include_lists=True)
 
 
-@router.get("classrooms/{classroom_id}/items")
+@router.get("/{classroom_id}/items")
 async def get_classroom_items(
     classroom_id: str, user: User = Depends(get_current_user)
 ):
@@ -69,7 +71,7 @@ async def get_classroom_items(
     return [item.to_dict() for item in classroom.items]
 
 
-@router.post("/classrooms/{classroom_id}/items")
+@router.post("/{classroom_id}/items")
 async def create_classroom_item(
     classroom_id: str,
     body: CreateClassroomItemModel,
@@ -78,8 +80,10 @@ async def create_classroom_item(
     classroom = controller.get_classroom_by_id(classroom_id)
     if classroom is None:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Classroom not found")
-    if user not in classroom:
-        raise HTTPException(status.HTTP_403_FORBIDDEN, "User not in classroom")
+    if user != classroom.owner:
+        raise HTTPException(
+            status.HTTP_403_FORBIDDEN, "User must be owner of classroom to create item"
+        )
     item_type = body.type
     topic = classroom.get_topic_by_id(body.topic_id) if body.topic_id else None
     attachments = list(map(controller.get_attachment_by_id, body.attachments_id))
@@ -158,7 +162,7 @@ async def create_classroom_item(
         raise HTTPException(status.HTTP_400_BAD_REQUEST, "Invalid data") from exp
 
 
-@router.get("/classrooms/{classroom_id}/items/{item_id}")
+@router.get("/{classroom_id}/items/{item_id}")
 async def get_classroom_item(
     classroom_id: str, item_id: str, user: User = Depends(get_current_user)
 ):
@@ -171,3 +175,57 @@ async def get_classroom_item(
     if item is None:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Item not found")
     return item.to_dict()
+
+
+@router.get("/{classroom_id}/items/{item_id}/submission")
+async def get_classroom_item_submission(
+    classroom_id: str, item_id: str, user: User = Depends(get_current_user)
+):
+    classroom = controller.get_classroom_by_id(classroom_id)
+    if classroom is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Classroom not found")
+    if user not in classroom:
+        raise HTTPException(status.HTTP_403_FORBIDDEN, "User not in classroom")
+    if user == classroom.owner:
+        raise HTTPException(
+            status.HTTP_400_BAD_REQUEST, "Classroom owner cannot create submission"
+        )
+    item = classroom.get_item_by_id(item_id)
+    if item is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Item not found")
+    if not isinstance(item, SubmissionsMixin):
+        raise HTTPException(
+            status.HTTP_400_BAD_REQUEST, "Item type does not support submission"
+        )
+    submission = item.get_submission_for_user(user)
+    if not submission:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Submission not found")
+    return submission.to_dict()
+
+
+@router.post("/{classroom_id}/items/{item_id}/submission")
+async def add_classroom_item_submission(
+    classroom_id: str,
+    item_id: str,
+    body: SubmissionModel,
+    user: User = Depends(get_current_user),
+):
+    classroom = controller.get_classroom_by_id(classroom_id)
+    if classroom is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Classroom not found")
+    if user not in classroom:
+        raise HTTPException(status.HTTP_403_FORBIDDEN, "User not in classroom")
+    if user == classroom.owner:
+        raise HTTPException(
+            status.HTTP_400_BAD_REQUEST, "Classroom owner cannot create submission"
+        )
+    item = classroom.get_item_by_id(item_id)
+    if item is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Item not found")
+    if not isinstance(item, SubmissionsMixin):
+        raise HTTPException(
+            status.HTTP_400_BAD_REQUEST, "Item type does not support submission"
+        )
+    attachments = list(map(controller.get_attachment_by_id, body.attachments_id))
+    attachments = [attachment for attachment in attachments if attachment]
+    return item.create_submission(user, attachments).to_dict()
