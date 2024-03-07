@@ -8,6 +8,7 @@ from ..internal.user import User
 from ..models.classroom import (
     CreateClassroomItemModel,
     CreateClassroomModel,
+    GradeSubmissionModel,
     JoinClassroomModel,
     SubmissionModel,
 )
@@ -25,7 +26,7 @@ async def get_classrooms(user: User = Depends(get_current_user)):
     return [classroom.to_dict() for classroom in classrooms]
 
 
-@router.post("/")
+@router.post("/", status_code=201)
 async def create_classroom(
     body: CreateClassroomModel, user: User = Depends(get_current_user)
 ):
@@ -71,7 +72,7 @@ async def get_classroom_items(
     return [item.to_dict() for item in classroom.items]
 
 
-@router.post("/{classroom_id}/items")
+@router.post("/{classroom_id}/items", status_code=201)
 async def create_classroom_item(
     classroom_id: str,
     body: CreateClassroomItemModel,
@@ -177,7 +178,30 @@ async def get_classroom_item(
     return item.to_dict()
 
 
-@router.get("/{classroom_id}/items/{item_id}/submission")
+@router.get("/{classroom_id}/items/{item_id}/submissions")
+async def get_classroom_item_submissions(
+    classroom_id: str, item_id: str, user: User = Depends(get_current_user)
+):
+    classroom = controller.get_classroom_by_id(classroom_id)
+    if classroom is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Classroom not found")
+    if user not in classroom:
+        raise HTTPException(status.HTTP_403_FORBIDDEN, "User not in classroom")
+    if user != classroom.owner:
+        raise HTTPException(
+            status.HTTP_403_FORBIDDEN, "Only classroom owner can view all submissions"
+        )
+    item = classroom.get_item_by_id(item_id)
+    if item is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Item not found")
+    if not isinstance(item, SubmissionsMixin):
+        raise HTTPException(
+            status.HTTP_400_BAD_REQUEST, "Item type does not support submission"
+        )
+    return [submission.to_dict() for submission in item.submissions]
+
+
+@router.get("/{classroom_id}/items/{item_id}/submissions/@me")
 async def get_classroom_item_submission(
     classroom_id: str, item_id: str, user: User = Depends(get_current_user)
 ):
@@ -197,13 +221,13 @@ async def get_classroom_item_submission(
         raise HTTPException(
             status.HTTP_400_BAD_REQUEST, "Item type does not support submission"
         )
-    submission = item.get_submission_for_user(user)
+    submission = item.get_submission_by_owner(user)
     if not submission:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Submission not found")
     return submission.to_dict()
 
 
-@router.post("/{classroom_id}/items/{item_id}/submission")
+@router.post("/{classroom_id}/items/{item_id}/submissions/@me", status_code=201)
 async def add_classroom_item_submission(
     classroom_id: str,
     item_id: str,
@@ -229,3 +253,33 @@ async def add_classroom_item_submission(
     attachments = list(map(controller.get_attachment_by_id, body.attachments_id))
     attachments = [attachment for attachment in attachments if attachment]
     return item.create_submission(user, attachments).to_dict()
+
+@router.put("/{classroom_id}/items/{item_id}/submissions/{submission_id}")
+async def grade_classroom_item_submission(
+    classroom_id: str,
+    item_id: str,
+    submission_id: str,
+    body: GradeSubmissionModel,
+    user: User = Depends(get_current_user),
+):
+    classroom = controller.get_classroom_by_id(classroom_id)
+    if classroom is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Classroom not found")
+    if user not in classroom:
+        raise HTTPException(status.HTTP_403_FORBIDDEN, "User not in classroom")
+    if user != classroom.owner:
+        raise HTTPException(
+            status.HTTP_403_FORBIDDEN, "Only classroom owner can view all submissions"
+        )
+    item = classroom.get_item_by_id(item_id)
+    if item is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Item not found")
+    if not isinstance(item, SubmissionsMixin):
+        raise HTTPException(
+            status.HTTP_400_BAD_REQUEST, "Item type does not support submission"
+        )
+    submission = item.get_submission_by_id(submission_id)
+    if submission is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Submission not found")
+    submission.point = body.point
+    return submission.to_dict()

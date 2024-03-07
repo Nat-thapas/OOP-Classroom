@@ -5,13 +5,13 @@ from ..internal.controller import controller
 from ..dependencies.dependencies import get_current_user
 
 router = APIRouter(
-    prefix="/user",
+    prefix="/users",
     tags=["User"],
     responses={404: {"description": "Not found"}},
 )
 
 
-@router.get("/users/{user_id}")
+@router.get("/{user_id}")
 async def get_user(user_id: str, _: User = Depends(get_current_user)):
     user = controller.get_user_by_id(user_id)
     if user is None:

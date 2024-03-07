@@ -96,9 +96,15 @@ class SubmissionsMixin:
         self._submissions.append(submission)
         return submission
 
-    def get_submission_for_user(self, user: User) -> Submission | None:
+    def get_submission_by_id(self, submission_id: str) -> Submission | None:
         for submission in self._submissions:
-            if submission.owner == user:
+            if submission.id == submission_id:
+                return submission
+        return None
+
+    def get_submission_by_owner(self, owner: User) -> Submission | None:
+        for submission in self._submissions:
+            if submission.owner == owner:
                 return submission
         return None
 

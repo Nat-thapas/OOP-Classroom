@@ -50,7 +50,7 @@ def authenticate_user(username_or_email: str, password: str) -> User | None:
     user = controller.get_user_by_email(
         username_or_email
     ) or controller.get_user_by_username(username_or_email)
-    if not user:
+    if user is None:
         return None
     if not verify_password(user.hashed_password, password):
         return None

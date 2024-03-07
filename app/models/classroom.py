@@ -42,3 +42,6 @@ class CreateClassroomItemModel(BaseModel):
 
 class SubmissionModel(BaseModel):
     attachments_id: Annotated[list[str], MaxLen(8)]
+
+class GradeSubmissionModel(BaseModel):
+    point: Annotated[int, Field(ge=0)] | None

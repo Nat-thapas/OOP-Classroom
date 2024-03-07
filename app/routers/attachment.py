@@ -11,7 +11,7 @@ router = APIRouter(
 )
 
 
-@router.post("/")
+@router.post("/", status_code=201)
 async def upload_file(file: UploadFile, user: User = Depends(get_current_user)):
     attachment = controller.create_attachment(
         file.filename or "unknown",
