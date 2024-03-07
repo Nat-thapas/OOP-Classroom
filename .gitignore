@@ -1,6 +1,5 @@
 .env
 *.ps1
-.vscode
 .VSCodeCounter
 __pycache__
 app/files
