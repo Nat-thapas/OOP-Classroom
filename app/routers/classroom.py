@@ -73,7 +73,10 @@ async def get_classroom(
     )
 
 
-@router.get("/{classroom_id}/topics", dependencies=[Depends(verify_user_in_classroom)])
+@router.get(
+    "/{classroom_id}/topics",
+    dependencies=[Depends(get_current_user), Depends(verify_user_in_classroom)],
+)
 async def get_classroom_topics(
     classroom: Annotated[Classroom, Depends(get_classroom_from_path)],
 ):
@@ -83,7 +86,7 @@ async def get_classroom_topics(
 @router.post(
     "/{classroom_id}/topics",
     status_code=status.HTTP_201_CREATED,
-    dependencies=[Depends(verify_user_is_classroom_owner)],
+    dependencies=[Depends(get_current_user), Depends(verify_user_is_classroom_owner)],
 )
 async def create_classroom_topic(
     body: CreateClassroomTopicModel,
@@ -110,7 +113,7 @@ async def get_classroom_items(
 @router.post(
     "/{classroom_id}/items",
     status_code=status.HTTP_201_CREATED,
-    dependencies=[Depends(verify_user_is_classroom_owner)],
+    dependencies=[Depends(get_current_user), Depends(verify_user_is_classroom_owner)],
 )
 async def create_classroom_item(
     body: CreateClassroomItemModel,
@@ -228,7 +231,7 @@ async def get_classroom_item(
 
 @router.get(
     "/{classroom_id}/items/{item_id}/submissions",
-    dependencies=[Depends(verify_user_is_classroom_owner)],
+    dependencies=[Depends(get_current_user), Depends(verify_user_is_classroom_owner)],
 )
 async def get_classroom_item_submissions(
     item: Annotated[BaseItem, Depends(get_item_from_path)],
@@ -279,7 +282,7 @@ async def add_classroom_item_submission(
 
 @router.put(
     "/{classroom_id}/items/{item_id}/submissions/{submission_id}",
-    dependencies=[Depends(verify_user_is_classroom_owner)],
+    dependencies=[Depends(get_current_user), Depends(verify_user_is_classroom_owner)],
 )
 async def grade_classroom_item_submission(
     body: GradeSubmissionModel,

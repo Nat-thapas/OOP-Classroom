@@ -58,12 +58,20 @@ class Classroom:
         return self.__id
 
     @property
+    def name(self) -> str:
+        return self.__name
+
+    @property
     def owner(self) -> User:
         return self.__owner
 
     @property
     def code(self) -> str:
         return self.__code
+
+    @property
+    def students(self) -> list[User]:
+        return self.__students
 
     @property
     def topics(self) -> list[Topic]:

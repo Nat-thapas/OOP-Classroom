@@ -1,10 +1,14 @@
 from typing import BinaryIO
 
+from ..constants.enums import TaskType
 from ..exceptions.classroom import InvalidCode, UserAlreadyInClassroom
 from ..exceptions.user import EmailAlreadyInUse, UsernameAlreadyInUse
 from .attachment import Attachment
 from .classroom import Classroom
+from .items import Assignment, MultipleChoiceQuestion, Question
+from .task import Task, ToDoTask, ToReviewTask
 from .user import User
+
 
 class Controller:
     def __init__(self) -> None:
@@ -91,6 +95,34 @@ class Controller:
             if attachment.id == attachment_id:
                 return attachment
         return None
+
+    def get_tasks_for_user(self, user: User, task_type: TaskType) -> list[Task]:
+        tasks: list[Task] = []
+        if task_type == TaskType.TODO:
+            classrooms = self.get_classrooms_for_user(user)
+            for classroom in classrooms:
+                if user == classroom.owner:
+                    continue
+                for item in classroom.items:
+                    if not isinstance(
+                        item, (Assignment, Question, MultipleChoiceQuestion)
+                    ):
+                        continue
+                    tasks.append(ToDoTask(classroom, item, user))
+            return tasks
+        if task_type == TaskType.TO_REVIEW:
+            classrooms = self.get_classrooms_for_user(user)
+            for classroom in classrooms:
+                if user != classroom.owner:
+                    continue
+                for item in classroom.items:
+                    if not isinstance(
+                        item, (Assignment, Question, MultipleChoiceQuestion)
+                    ):
+                        continue
+                    tasks.append(ToReviewTask(classroom, item, user))
+            return tasks
+        raise ValueError("Invalid task type")
 
 
 controller = Controller()

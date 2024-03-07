@@ -14,14 +14,22 @@ class BaseItem(ABC):
     ) -> None:
         super().__init__(**kwargs)
         self._id: str = str(uuid4())
-        self._time_created: datetime = datetime.now()
-        self._time_edited: datetime = datetime.now()
+        self._created_at: datetime = datetime.now()
+        self._edited_at: datetime = datetime.now()
         self._attachments: list[Attachment] = attachments
         self._assigned_to_students: list[User] = assigned_to_students
 
     @property
     def id(self) -> str:
         return self._id
+
+    @property
+    def created_at(self) -> datetime:
+        return self._created_at
+
+    @property
+    def edited_at(self) -> datetime:
+        return self._edited_at
 
     @property
     def assigned_to_students(self) -> list[User]:
@@ -129,8 +137,8 @@ class Announcement(BaseItem):
     def to_dict(self) -> dict:
         return {
             "id": self._id,
-            "time_created": self._time_created,
-            "time_edited": self._time_edited,
+            "created_at": self._created_at,
+            "edited_at": self._edited_at,
             "attachments": [attachment.to_dict() for attachment in self._attachments],
             "announcement_text": self.__announcement_text,
         }
@@ -156,8 +164,8 @@ class Material(TopicMixin, TitleMixin, DescriptionMixin, BaseItem):
     def to_dict(self) -> dict:
         return {
             "id": self._id,
-            "time_created": self._time_created,
-            "time_edited": self._time_edited,
+            "created_at": self._created_at,
+            "edited_at": self._edited_at,
             "attachments": [attachment.to_dict() for attachment in self._attachments],
             "topic": self._topic.to_dict() if self._topic else None,
             "title": self._title,
@@ -197,8 +205,8 @@ class Assignment(
     def to_dict(self) -> dict:
         return {
             "id": self._id,
-            "time_created": self._time_created,
-            "time_edited": self._time_edited,
+            "created_at": self._created_at,
+            "edited_at": self._edited_at,
             "attachments": [attachment.to_dict() for attachment in self._attachments],
             "topic": self._topic.to_dict() if self._topic else None,
             "title": self._title,
@@ -240,8 +248,8 @@ class Question(
     def to_dict(self) -> dict:
         return {
             "id": self._id,
-            "time_created": self._time_created,
-            "time_edited": self._time_edited,
+            "created_at": self._created_at,
+            "edited_at": self._edited_at,
             "attachments": [attachment.to_dict() for attachment in self._attachments],
             "topic": self._topic.to_dict() if self._topic else None,
             "title": self._title,
@@ -276,8 +284,8 @@ class MultipleChoiceQuestion(Question):
     def to_dict(self) -> dict:
         return {
             "id": self._id,
-            "time_created": self._time_created,
-            "time_edited": self._time_edited,
+            "created_at": self._created_at,
+            "edited_at": self._edited_at,
             "attachments": [attachment.to_dict() for attachment in self._attachments],
             "topic": self._topic.to_dict() if self._topic else None,
             "title": self._title,
