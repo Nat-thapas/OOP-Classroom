@@ -13,7 +13,7 @@ router = APIRouter(
 )
 
 
-@router.post("/", status_code=201)
+@router.post("", status_code=status.HTTP_201_CREATED)
 async def upload_file(
     file: UploadFile, user: Annotated[User, Depends(get_current_user)]
 ):

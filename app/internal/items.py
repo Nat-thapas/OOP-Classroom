@@ -54,7 +54,7 @@ class TitleMixin:
 
 class DescriptionMixin:
     def __init__(self, description: str | None, **kwargs) -> None:
-        super().__init__(*kwargs)
+        super().__init__(**kwargs)
         self._description: str | None = description
 
     @property
@@ -159,7 +159,7 @@ class Material(TopicMixin, TitleMixin, DescriptionMixin, BaseItem):
             "time_created": self._time_created,
             "time_edited": self._time_edited,
             "attachments": [attachment.to_dict() for attachment in self._attachments],
-            "topic": self._topic.to_dict() if self._topic else "",
+            "topic": self._topic.to_dict() if self._topic else None,
             "title": self._title,
             "description": self._description,
         }
@@ -200,7 +200,7 @@ class Assignment(
             "time_created": self._time_created,
             "time_edited": self._time_edited,
             "attachments": [attachment.to_dict() for attachment in self._attachments],
-            "topic": self._topic.to_dict() if self._topic else "",
+            "topic": self._topic.to_dict() if self._topic else None,
             "title": self._title,
             "description": self._description,
             "due_date": self._due_date,
@@ -243,7 +243,7 @@ class Question(
             "time_created": self._time_created,
             "time_edited": self._time_edited,
             "attachments": [attachment.to_dict() for attachment in self._attachments],
-            "topic": self._topic.to_dict() if self._topic else "",
+            "topic": self._topic.to_dict() if self._topic else None,
             "title": self._title,
             "description": self._description,
             "due_date": self._due_date,
@@ -279,7 +279,7 @@ class MultipleChoiceQuestion(Question):
             "time_created": self._time_created,
             "time_edited": self._time_edited,
             "attachments": [attachment.to_dict() for attachment in self._attachments],
-            "topic": self._topic.to_dict() if self._topic else "",
+            "topic": self._topic.to_dict() if self._topic else None,
             "title": self._title,
             "description": self._description,
             "due_date": self._due_date,

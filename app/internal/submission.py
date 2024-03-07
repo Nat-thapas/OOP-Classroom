@@ -30,9 +30,9 @@ class Submission:
     def to_dict(self) -> dict:
         return {
             "id": self.__id,
-            "owner_id": self.__owner,
+            "owner_id": self.__owner.id,
             "point": self.__point,
             "attachments": [
-                attachments.to_dict() for attachments in self.__attachments
+                attachment.to_dict() for attachment in self.__attachments
             ],
         }

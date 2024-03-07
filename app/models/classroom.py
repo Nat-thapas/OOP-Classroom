@@ -27,6 +27,10 @@ class JoinClassroomModel(BaseModel):
     ]
 
 
+class CreateClassroomTopicModel(BaseModel):
+    name: Annotated[str, Field(min_length=1, max_length=64)]
+
+
 class CreateClassroomItemModel(BaseModel):
     type: ClassroomItemType
     topic_id: str | None

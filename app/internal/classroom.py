@@ -66,10 +66,19 @@ class Classroom:
         return self.__code
 
     @property
+    def topics(self) -> list[Topic]:
+        return self.__topics
+
+    @property
     def items(self) -> list[BaseItem]:
         return self.__items
 
-    def to_dict(self, include_code: bool = False, include_lists: bool = False) -> dict:
+    def to_dict(
+        self,
+        include_code: bool = False,
+        include_lists: bool = False,
+        filter_item_for_user: User | None = None,
+    ) -> dict:
         classroom_dict: dict = {
             "id": self.__id,
             "owner_id": self.__owner.id,
@@ -86,9 +95,22 @@ class Classroom:
                 student.to_dict() for student in self.__students
             ]
             classroom_dict["topics"] = [topic.to_dict() for topic in self.__topics]
-            classroom_dict["items"] = [item.to_dict() for item in self.__items]
+            if filter_item_for_user and filter_item_for_user != self.__owner:
+                classroom_dict["items"] = [
+                    item.to_dict()
+                    for item in self.__items
+                    if filter_item_for_user in item.assigned_to_students
+                    or not item.assigned_to_students
+                ]
+            else:
+                classroom_dict["items"] = [item.to_dict() for item in self.__items]
 
         return classroom_dict
+
+    def create_topic(self, name: str) -> Topic:
+        topic = Topic(name)
+        self.__topics.append(topic)
+        return topic
 
     def get_topic_by_id(self, topic_id: str) -> Topic | None:
         for topic in self.__topics:
@@ -133,7 +155,7 @@ class Classroom:
         title: str,
         description: str | None,
     ):
-        if topic not in self.__topics:
+        if topic and topic not in self.__topics:
             raise ValueError("Invalid topic")
         for student in assigned_to_students:
             if student not in self.__students:
@@ -154,7 +176,7 @@ class Classroom:
         due_date: datetime | None,
         point: int | None,
     ):
-        if topic not in self.__topics:
+        if topic and topic not in self.__topics:
             raise ValueError("Invalid topic")
         for student in assigned_to_students:
             if student not in self.__students:
@@ -181,7 +203,7 @@ class Classroom:
         due_date: datetime | None,
         point: int | None,
     ):
-        if topic not in self.__topics:
+        if topic and topic not in self.__topics:
             raise ValueError("Invalid topic")
         for student in assigned_to_students:
             if student not in self.__students:
@@ -207,9 +229,9 @@ class Classroom:
         description: str | None,
         due_date: datetime | None,
         point: int | None,
-        choices: list[str]
+        choices: list[str],
     ):
-        if topic not in self.__topics:
+        if topic and topic not in self.__topics:
             raise ValueError("Invalid topic")
         for student in assigned_to_students:
             if student not in self.__students:

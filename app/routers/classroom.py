@@ -20,6 +20,7 @@ from ..internal.user import User
 from ..models.classroom import (
     CreateClassroomItemModel,
     CreateClassroomModel,
+    CreateClassroomTopicModel,
     GradeSubmissionModel,
     JoinClassroomModel,
     SubmissionModel,
@@ -32,23 +33,23 @@ router = APIRouter(
 )
 
 
-@router.get("/")
+@router.get("")
 async def get_classrooms(user: Annotated[User, Depends(get_current_user)]):
     classrooms = controller.get_classrooms_for_user(user)
-    return [classroom.to_dict() for classroom in classrooms]
+    return [classroom.to_dict(filter_item_for_user=user) for classroom in classrooms]
 
 
-@router.post("/", status_code=201)
+@router.post("", status_code=status.HTTP_201_CREATED)
 async def create_classroom(
     body: CreateClassroomModel, user: Annotated[User, Depends(get_current_user)]
 ):
     classroom = controller.create_classroom(
         user, body.name, body.section, body.subject, body.room
     )
-    return classroom.to_dict()
+    return classroom.to_dict(filter_item_for_user=user)
 
 
-@router.put("/")
+@router.put("")
 async def join_classroom(
     body: JoinClassroomModel, user: Annotated[User, Depends(get_current_user)]
 ):
@@ -58,7 +59,7 @@ async def join_classroom(
     if user in classroom:
         raise HTTPException(status.HTTP_400_BAD_REQUEST, "User already in classroom")
     classroom.add_student(user)
-    return classroom.to_dict()
+    return classroom.to_dict(filter_item_for_user=user)
 
 
 @router.get("/{classroom_id}", dependencies=[Depends(verify_user_in_classroom)])
@@ -67,19 +68,48 @@ async def get_classroom(
     classroom: Annotated[Classroom, Depends(get_classroom_from_path)],
 ):
     include_code = user == classroom.owner
-    return classroom.to_dict(include_code=include_code, include_lists=True)
+    return classroom.to_dict(
+        include_code=include_code, include_lists=True, filter_item_for_user=user
+    )
+
+
+@router.get("/{classroom_id}/topics", dependencies=[Depends(verify_user_in_classroom)])
+async def get_classroom_topics(
+    classroom: Annotated[Classroom, Depends(get_classroom_from_path)],
+):
+    return [topic.to_dict() for topic in classroom.topics]
+
+
+@router.post(
+    "/{classroom_id}/topics",
+    status_code=status.HTTP_201_CREATED,
+    dependencies=[Depends(verify_user_is_classroom_owner)],
+)
+async def create_classroom_topic(
+    body: CreateClassroomTopicModel,
+    classroom: Annotated[Classroom, Depends(get_classroom_from_path)],
+):
+    topic = classroom.create_topic(body.name)
+    return topic.to_dict()
 
 
 @router.get("/{classroom_id}/items", dependencies=[Depends(verify_user_in_classroom)])
 async def get_classroom_items(
+    user: Annotated[User, Depends(get_current_user)],
     classroom: Annotated[Classroom, Depends(get_classroom_from_path)],
 ):
-    return [item.to_dict() for item in classroom.items]
+    return [
+        item.to_dict()
+        for item in classroom.items
+        if user in item.assigned_to_students
+        or not item.assigned_to_students
+        or user == classroom.owner
+    ]
 
 
 @router.post(
     "/{classroom_id}/items",
-    status_code=201,
+    status_code=status.HTTP_201_CREATED,
     dependencies=[Depends(verify_user_is_classroom_owner)],
 )
 async def create_classroom_item(
@@ -87,12 +117,21 @@ async def create_classroom_item(
     classroom: Annotated[Classroom, Depends(get_classroom_from_path)],
 ):
     item_type = body.type
-    topic = classroom.get_topic_by_id(body.topic_id) if body.topic_id else None
+    if body.topic_id:
+        topic = classroom.get_topic_by_id(body.topic_id)
+        if topic is None:
+            raise HTTPException(status.HTTP_400_BAD_REQUEST, "Invalid topic ID")
+    else:
+        topic = None
     attachments = list(map(controller.get_attachment_by_id, body.attachments_id))
+    if None in attachments:
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, "Invalid attachment ID")
     attachments = [attachment for attachment in attachments if attachment]
     assigned_to_students = list(
         map(controller.get_user_by_id, body.assigned_to_students_id)
     )
+    if None in assigned_to_students:
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, "Invalid student ID")
     assigned_to_students = [student for student in assigned_to_students if student]
     try:
         if item_type == ClassroomItemType.ANNOUNCEMENT:
@@ -101,9 +140,10 @@ async def create_classroom_item(
                 raise HTTPException(
                     status.HTTP_400_BAD_REQUEST, "Announcement text is required"
                 )
-            return classroom.create_announcement(
+            announcement = classroom.create_announcement(
                 attachments, assigned_to_students, announcement_text
             )
+            return announcement.to_dict()
 
         title = body.title
         if title is None:
@@ -111,15 +151,16 @@ async def create_classroom_item(
         description = body.description
 
         if item_type == ClassroomItemType.MATERIAL:
-            return classroom.create_material(
+            material = classroom.create_material(
                 topic, attachments, assigned_to_students, title, description
             )
+            return material.to_dict()
 
         due_date = body.due_date
         point = body.point
 
         if item_type == ClassroomItemType.ASSIGNMENT:
-            return classroom.create_assignment(
+            assignment = classroom.create_assignment(
                 topic,
                 attachments,
                 assigned_to_students,
@@ -128,9 +169,10 @@ async def create_classroom_item(
                 due_date,
                 point,
             )
+            return assignment.to_dict()
 
         if item_type == ClassroomItemType.QUESTION:
-            return classroom.create_question(
+            question = classroom.create_question(
                 topic,
                 attachments,
                 assigned_to_students,
@@ -139,6 +181,7 @@ async def create_classroom_item(
                 due_date,
                 point,
             )
+            return question.to_dict()
 
         choices = body.choices
         if choices is None:
@@ -147,7 +190,7 @@ async def create_classroom_item(
             )
 
         if item_type == ClassroomItemType.MULTIPLE_CHOICE_QUESTION:
-            return classroom.create_multiple_choice_question(
+            multiple_choice_question = classroom.create_multiple_choice_question(
                 topic,
                 attachments,
                 assigned_to_students,
@@ -157,6 +200,7 @@ async def create_classroom_item(
                 point,
                 choices,
             )
+            return multiple_choice_question.to_dict()
 
         raise HTTPException(status.HTTP_400_BAD_REQUEST, "Invalid item type")
 
@@ -168,9 +212,18 @@ async def create_classroom_item(
     "/{classroom_id}/items/{item_id}", dependencies=[Depends(verify_user_in_classroom)]
 )
 async def get_classroom_item(
+    user: Annotated[User, Depends(get_current_user)],
+    classroom: Annotated[Classroom, Depends(get_classroom_from_path)],
     item: Annotated[BaseItem, Depends(get_item_from_path)],
 ):
-    return item.to_dict()
+    if (
+        user in item.assigned_to_students
+        or not item.assigned_to_students
+        or user == classroom.owner
+    ):
+        return item.to_dict()
+    else:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Item not found")
 
 
 @router.get(
@@ -207,7 +260,7 @@ async def get_classroom_item_submission(
 
 @router.post(
     "/{classroom_id}/items/{item_id}/submissions/@me",
-    status_code=201,
+    status_code=status.HTTP_201_CREATED,
     dependencies=[Depends(verify_user_is_student)],
 )
 async def add_classroom_item_submission(

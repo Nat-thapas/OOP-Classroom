@@ -1,6 +1,6 @@
 from contextlib import asynccontextmanager
-from shutil import rmtree
 from os import mkdir
+from shutil import rmtree
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
