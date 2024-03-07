@@ -2,7 +2,7 @@ from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, Response, UploadFile, status
 
-from ..dependencies.dependencies import get_current_user
+from ..dependencies.authentication import get_current_user
 from ..internal.controller import controller
 from ..internal.user import User
 

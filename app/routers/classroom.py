@@ -3,9 +3,9 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, HTTPException, status
 
 from ..constants.enums import ClassroomItemType
-from ..dependencies.dependencies import (
+from ..dependencies.authentication import get_current_user
+from ..dependencies.classroom import (
     get_classroom_from_path,
-    get_current_user,
     get_item_from_path,
     get_submission_from_path,
     verify_user_in_classroom,

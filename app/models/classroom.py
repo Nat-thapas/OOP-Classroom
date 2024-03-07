@@ -1,11 +1,11 @@
 from datetime import datetime
 from typing import Annotated
-from annotated_types import MinLen, MaxLen
 
+from annotated_types import MaxLen, MinLen
 from pydantic import BaseModel, Field
 
-from ..constants.enums import ClassroomItemType
 from ..config.config import get_settings
+from ..constants.enums import ClassroomItemType
 
 settings = get_settings()
 
@@ -42,6 +42,7 @@ class CreateClassroomItemModel(BaseModel):
 
 class SubmissionModel(BaseModel):
     attachments_id: Annotated[list[str], MaxLen(8)]
+
 
 class GradeSubmissionModel(BaseModel):
     point: Annotated[int, Field(ge=0)] | None
