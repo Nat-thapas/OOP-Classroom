@@ -1,9 +1,21 @@
+from typing import Annotated
+
 from fastapi import APIRouter, Depends, HTTPException, status
 
 from ..constants.enums import ClassroomItemType
-from ..dependencies.dependencies import get_current_user
+from ..dependencies.dependencies import (
+    get_classroom_from_path,
+    get_current_user,
+    get_item_from_path,
+    get_submission_from_path,
+    verify_user_in_classroom,
+    verify_user_is_classroom_owner,
+    verify_user_is_student,
+)
+from ..internal.classroom import Classroom
 from ..internal.controller import controller
-from ..internal.items import SubmissionsMixin
+from ..internal.items import BaseItem, SubmissionsMixin
+from ..internal.submission import Submission
 from ..internal.user import User
 from ..models.classroom import (
     CreateClassroomItemModel,
@@ -21,14 +33,14 @@ router = APIRouter(
 
 
 @router.get("/")
-async def get_classrooms(user: User = Depends(get_current_user)):
+async def get_classrooms(user: Annotated[User, Depends(get_current_user)]):
     classrooms = controller.get_classrooms_for_user(user)
     return [classroom.to_dict() for classroom in classrooms]
 
 
 @router.post("/", status_code=201)
 async def create_classroom(
-    body: CreateClassroomModel, user: User = Depends(get_current_user)
+    body: CreateClassroomModel, user: Annotated[User, Depends(get_current_user)]
 ):
     classroom = controller.create_classroom(
         user, body.name, body.section, body.subject, body.room
@@ -38,7 +50,7 @@ async def create_classroom(
 
 @router.put("/")
 async def join_classroom(
-    body: JoinClassroomModel, user: User = Depends(get_current_user)
+    body: JoinClassroomModel, user: Annotated[User, Depends(get_current_user)]
 ):
     classroom = controller.get_classroom_by_code(body.classroom_code)
     if classroom is None:
@@ -49,42 +61,31 @@ async def join_classroom(
     return classroom.to_dict()
 
 
-@router.get("/{classroom_id}")
-async def get_classroom(classroom_id: str, user: User = Depends(get_current_user)):
-    classroom = controller.get_classroom_by_id(classroom_id)
-    if classroom is None:
-        raise HTTPException(status.HTTP_404_NOT_FOUND, "Classroom not found")
-    if user not in classroom:
-        raise HTTPException(status.HTTP_403_FORBIDDEN, "User not in classroom")
+@router.get("/{classroom_id}", dependencies=[Depends(verify_user_in_classroom)])
+async def get_classroom(
+    user: Annotated[User, Depends(get_current_user)],
+    classroom: Annotated[Classroom, Depends(get_classroom_from_path)],
+):
     include_code = user == classroom.owner
     return classroom.to_dict(include_code=include_code, include_lists=True)
 
 
-@router.get("/{classroom_id}/items")
+@router.get("/{classroom_id}/items", dependencies=[Depends(verify_user_in_classroom)])
 async def get_classroom_items(
-    classroom_id: str, user: User = Depends(get_current_user)
+    classroom: Annotated[Classroom, Depends(get_classroom_from_path)],
 ):
-    classroom = controller.get_classroom_by_id(classroom_id)
-    if classroom is None:
-        raise HTTPException(status.HTTP_404_NOT_FOUND, "Classroom not found")
-    if user not in classroom:
-        raise HTTPException(status.HTTP_403_FORBIDDEN, "User not in classroom")
     return [item.to_dict() for item in classroom.items]
 
 
-@router.post("/{classroom_id}/items", status_code=201)
+@router.post(
+    "/{classroom_id}/items",
+    status_code=201,
+    dependencies=[Depends(verify_user_is_classroom_owner)],
+)
 async def create_classroom_item(
-    classroom_id: str,
     body: CreateClassroomItemModel,
-    user: User = Depends(get_current_user),
+    classroom: Annotated[Classroom, Depends(get_classroom_from_path)],
 ):
-    classroom = controller.get_classroom_by_id(classroom_id)
-    if classroom is None:
-        raise HTTPException(status.HTTP_404_NOT_FOUND, "Classroom not found")
-    if user != classroom.owner:
-        raise HTTPException(
-            status.HTTP_403_FORBIDDEN, "User must be owner of classroom to create item"
-        )
     item_type = body.type
     topic = classroom.get_topic_by_id(body.topic_id) if body.topic_id else None
     attachments = list(map(controller.get_attachment_by_id, body.attachments_id))
@@ -163,37 +164,22 @@ async def create_classroom_item(
         raise HTTPException(status.HTTP_400_BAD_REQUEST, "Invalid data") from exp
 
 
-@router.get("/{classroom_id}/items/{item_id}")
+@router.get(
+    "/{classroom_id}/items/{item_id}", dependencies=[Depends(verify_user_in_classroom)]
+)
 async def get_classroom_item(
-    classroom_id: str, item_id: str, user: User = Depends(get_current_user)
+    item: Annotated[BaseItem, Depends(get_item_from_path)],
 ):
-    classroom = controller.get_classroom_by_id(classroom_id)
-    if classroom is None:
-        raise HTTPException(status.HTTP_404_NOT_FOUND, "Classroom not found")
-    if user not in classroom:
-        raise HTTPException(status.HTTP_403_FORBIDDEN, "User not in classroom")
-    item = classroom.get_item_by_id(item_id)
-    if item is None:
-        raise HTTPException(status.HTTP_404_NOT_FOUND, "Item not found")
     return item.to_dict()
 
 
-@router.get("/{classroom_id}/items/{item_id}/submissions")
+@router.get(
+    "/{classroom_id}/items/{item_id}/submissions",
+    dependencies=[Depends(verify_user_is_classroom_owner)],
+)
 async def get_classroom_item_submissions(
-    classroom_id: str, item_id: str, user: User = Depends(get_current_user)
+    item: Annotated[BaseItem, Depends(get_item_from_path)],
 ):
-    classroom = controller.get_classroom_by_id(classroom_id)
-    if classroom is None:
-        raise HTTPException(status.HTTP_404_NOT_FOUND, "Classroom not found")
-    if user not in classroom:
-        raise HTTPException(status.HTTP_403_FORBIDDEN, "User not in classroom")
-    if user != classroom.owner:
-        raise HTTPException(
-            status.HTTP_403_FORBIDDEN, "Only classroom owner can view all submissions"
-        )
-    item = classroom.get_item_by_id(item_id)
-    if item is None:
-        raise HTTPException(status.HTTP_404_NOT_FOUND, "Item not found")
     if not isinstance(item, SubmissionsMixin):
         raise HTTPException(
             status.HTTP_400_BAD_REQUEST, "Item type does not support submission"
@@ -201,22 +187,14 @@ async def get_classroom_item_submissions(
     return [submission.to_dict() for submission in item.submissions]
 
 
-@router.get("/{classroom_id}/items/{item_id}/submissions/@me")
+@router.get(
+    "/{classroom_id}/items/{item_id}/submissions/@me",
+    dependencies=[Depends(verify_user_is_student)],
+)
 async def get_classroom_item_submission(
-    classroom_id: str, item_id: str, user: User = Depends(get_current_user)
+    user: Annotated[User, Depends(get_current_user)],
+    item: Annotated[BaseItem, Depends(get_item_from_path)],
 ):
-    classroom = controller.get_classroom_by_id(classroom_id)
-    if classroom is None:
-        raise HTTPException(status.HTTP_404_NOT_FOUND, "Classroom not found")
-    if user not in classroom:
-        raise HTTPException(status.HTTP_403_FORBIDDEN, "User not in classroom")
-    if user == classroom.owner:
-        raise HTTPException(
-            status.HTTP_400_BAD_REQUEST, "Classroom owner cannot create submission"
-        )
-    item = classroom.get_item_by_id(item_id)
-    if item is None:
-        raise HTTPException(status.HTTP_404_NOT_FOUND, "Item not found")
     if not isinstance(item, SubmissionsMixin):
         raise HTTPException(
             status.HTTP_400_BAD_REQUEST, "Item type does not support submission"
@@ -227,25 +205,16 @@ async def get_classroom_item_submission(
     return submission.to_dict()
 
 
-@router.post("/{classroom_id}/items/{item_id}/submissions/@me", status_code=201)
+@router.post(
+    "/{classroom_id}/items/{item_id}/submissions/@me",
+    status_code=201,
+    dependencies=[Depends(verify_user_is_student)],
+)
 async def add_classroom_item_submission(
-    classroom_id: str,
-    item_id: str,
     body: SubmissionModel,
-    user: User = Depends(get_current_user),
+    user: Annotated[User, Depends(get_current_user)],
+    item: Annotated[BaseItem, Depends(get_item_from_path)],
 ):
-    classroom = controller.get_classroom_by_id(classroom_id)
-    if classroom is None:
-        raise HTTPException(status.HTTP_404_NOT_FOUND, "Classroom not found")
-    if user not in classroom:
-        raise HTTPException(status.HTTP_403_FORBIDDEN, "User not in classroom")
-    if user == classroom.owner:
-        raise HTTPException(
-            status.HTTP_400_BAD_REQUEST, "Classroom owner cannot create submission"
-        )
-    item = classroom.get_item_by_id(item_id)
-    if item is None:
-        raise HTTPException(status.HTTP_404_NOT_FOUND, "Item not found")
     if not isinstance(item, SubmissionsMixin):
         raise HTTPException(
             status.HTTP_400_BAD_REQUEST, "Item type does not support submission"
@@ -254,31 +223,15 @@ async def add_classroom_item_submission(
     attachments = [attachment for attachment in attachments if attachment]
     return item.create_submission(user, attachments).to_dict()
 
-@router.put("/{classroom_id}/items/{item_id}/submissions/{submission_id}")
+
+@router.put(
+    "/{classroom_id}/items/{item_id}/submissions/{submission_id}",
+    dependencies=[Depends(verify_user_is_classroom_owner)],
+)
 async def grade_classroom_item_submission(
-    classroom_id: str,
-    item_id: str,
-    submission_id: str,
     body: GradeSubmissionModel,
-    user: User = Depends(get_current_user),
+    submission: Annotated[Submission, Depends(get_submission_from_path)],
 ):
-    classroom = controller.get_classroom_by_id(classroom_id)
-    if classroom is None:
-        raise HTTPException(status.HTTP_404_NOT_FOUND, "Classroom not found")
-    if user not in classroom:
-        raise HTTPException(status.HTTP_403_FORBIDDEN, "User not in classroom")
-    if user != classroom.owner:
-        raise HTTPException(
-            status.HTTP_403_FORBIDDEN, "Only classroom owner can view all submissions"
-        )
-    item = classroom.get_item_by_id(item_id)
-    if item is None:
-        raise HTTPException(status.HTTP_404_NOT_FOUND, "Item not found")
-    if not isinstance(item, SubmissionsMixin):
-        raise HTTPException(
-            status.HTTP_400_BAD_REQUEST, "Item type does not support submission"
-        )
-    submission = item.get_submission_by_id(submission_id)
     if submission is None:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Submission not found")
     submission.point = body.point
