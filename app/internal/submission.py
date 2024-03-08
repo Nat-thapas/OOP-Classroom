@@ -1,6 +1,7 @@
 from uuid import uuid4
 
 from .attachment import Attachment
+from .comment import Comment
 from .user import User
 
 
@@ -10,6 +11,7 @@ class Submission:
         self.__owner: User = owner
         self.__attachments: list[Attachment] = attachments
         self.__point: int | None = None
+        self.__comments: list[Comment] = []
 
     @property
     def id(self) -> str:
@@ -32,7 +34,11 @@ class Submission:
             "id": self.__id,
             "owner_id": self.__owner.id,
             "point": self.__point,
-            "attachments": [
-                attachment.to_dict() for attachment in self.__attachments
-            ],
+            "attachments": [attachment.to_dict() for attachment in self.__attachments],
+            "comments": [comment.to_dict() for comment in self.__comments],
         }
+
+    def create_comment(self, owner: User, text: str) -> Comment:
+        comment = Comment(owner, text)
+        self.__comments.append(comment)
+        return comment

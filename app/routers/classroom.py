@@ -1,4 +1,5 @@
 import os
+from functools import lru_cache
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, status
@@ -20,6 +21,7 @@ from ..internal.items import BaseItem, SubmissionsMixin
 from ..internal.submission import Submission
 from ..internal.user import User
 from ..models.classroom import (
+    AddCommentModel,
     CreateClassroomItemModel,
     CreateClassroomModel,
     CreateClassroomTopicModel,
@@ -36,6 +38,20 @@ router = APIRouter(
     tags=["Classroom"],
     responses={404: {"description": "Not found"}},
 )
+
+
+@lru_cache
+def get_banner_images_cached():
+    banner_categories = os.listdir(settings.banner_images_storage_path)
+    banner_images: dict[str, list[str]] = {}
+    for category in banner_categories:
+        category_path = os.path.join(settings.banner_images_storage_path, category)
+        for image in os.listdir(category_path):
+            if category in banner_images:
+                banner_images[category].append(image)
+            else:
+                banner_images[category] = [image]
+    return banner_images
 
 
 @router.get("")
@@ -69,16 +85,7 @@ async def join_classroom(
 
 @router.get("/banner-images")
 async def get_banner_images():
-    banner_categories = os.listdir(settings.banner_images_storage_path)
-    banner_images: dict[str, list[str]] = {}
-    for category in banner_categories:
-        category_path = os.path.join(settings.banner_images_storage_path, category)
-        for image in os.listdir(category_path):
-            if category in banner_images:
-                banner_images[category].append(image)
-            else:
-                banner_images[category] = [image]
-    return banner_images
+    return get_banner_images_cached()
 
 
 @router.get("/{classroom_id}", dependencies=[Depends(verify_user_in_classroom)])
@@ -278,6 +285,20 @@ async def get_classroom_item(
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Item not found")
 
 
+@router.post(
+    "/{classroom_id}/items/{item_id}/comments",
+    status_code=status.HTTP_201_CREATED,
+    dependencies=[Depends(verify_user_in_classroom)],
+)
+async def add_comment_to_classroom_item(
+    body: AddCommentModel,
+    user: Annotated[User, Depends(get_current_user)],
+    item: Annotated[BaseItem, Depends(get_item_from_path)],
+):
+    item.create_comment(user, body.comment)
+    return item.to_dict()
+
+
 @router.get(
     "/{classroom_id}/items/{item_id}/submissions",
     dependencies=[Depends(get_current_user), Depends(verify_user_is_classroom_owner)],
@@ -329,6 +350,27 @@ async def add_classroom_item_submission(
     return item.create_submission(user, attachments).to_dict()
 
 
+@router.post(
+    "/{classroom_id}/items/{item_id}/submissions/@me/comments",
+    status_code=status.HTTP_201_CREATED,
+    dependencies=[Depends(verify_user_is_student)],
+)
+async def add_comment_to_my_submission(
+    body: AddCommentModel,
+    user: Annotated[User, Depends(get_current_user)],
+    item: Annotated[BaseItem, Depends(get_item_from_path)],
+):
+    if not isinstance(item, SubmissionsMixin):
+        raise HTTPException(
+            status.HTTP_400_BAD_REQUEST, "Item type does not support submission"
+        )
+    submission = item.get_submission_by_owner(user)
+    if not submission:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Submission not found")
+    submission.create_comment(user, body.comment)
+    return submission.to_dict()
+
+
 @router.put(
     "/{classroom_id}/items/{item_id}/submissions/{submission_id}",
     dependencies=[Depends(get_current_user), Depends(verify_user_is_classroom_owner)],
@@ -340,4 +382,20 @@ async def grade_classroom_item_submission(
     if submission is None:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Submission not found")
     submission.point = body.point
+    return submission.to_dict()
+
+
+@router.post(
+    "/{classroom_id}/items/{item_id}/submissions/{submission_id}/comments",
+    status_code=status.HTTP_201_CREATED,
+    dependencies=[Depends(verify_user_is_classroom_owner)],
+)
+async def add_comment_to_submission(
+    body: AddCommentModel,
+    user: Annotated[User, Depends(get_current_user)],
+    submission: Annotated[Submission, Depends(get_submission_from_path)],
+):
+    if submission is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Submission not found")
+    submission.create_comment(user, body.comment)
     return submission.to_dict()

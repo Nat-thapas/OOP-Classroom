@@ -1,16 +1,20 @@
-from uuid import uuid4
-from datetime import datetime
 from abc import ABC, abstractmethod
+from datetime import datetime
+from uuid import uuid4
 
-from .user import User
 from .attachment import Attachment
+from .comment import Comment
 from .submission import Submission
 from .topic import Topic
+from .user import User
 
 
 class BaseItem(ABC):
     def __init__(
-        self, attachments: list[Attachment], assigned_to_students: list[User] | None, **kwargs
+        self,
+        attachments: list[Attachment],
+        assigned_to_students: list[User] | None,
+        **kwargs
     ) -> None:
         super().__init__(**kwargs)
         self._id: str = str(uuid4())
@@ -18,6 +22,7 @@ class BaseItem(ABC):
         self._edited_at: datetime = datetime.now()
         self._attachments: list[Attachment] = attachments
         self._assigned_to_students: list[User] | None = assigned_to_students
+        self._comments: list[Comment] = []
 
     @property
     def id(self) -> str:
@@ -38,6 +43,11 @@ class BaseItem(ABC):
     @abstractmethod
     def to_dict(self) -> dict:
         pass
+
+    def create_comment(self, owner: User, text: str) -> Comment:
+        comment = Comment(owner, text)
+        self._comments.append(comment)
+        return comment
 
 
 class TopicMixin:
@@ -99,7 +109,9 @@ class SubmissionsMixin:
     def submissions(self) -> list[Submission]:
         return self._submissions
 
-    def create_submission(self, user: User, attachments: list[Attachment]) -> Submission:
+    def create_submission(
+        self, user: User, attachments: list[Attachment]
+    ) -> Submission:
         submission = Submission(user, attachments)
         self._submissions.append(submission)
         return submission
@@ -137,10 +149,11 @@ class Announcement(BaseItem):
     def to_dict(self) -> dict:
         return {
             "id": self._id,
-            "created_at": self._created_at,
-            "edited_at": self._edited_at,
+            "created_at": self._created_at.isoformat(),
+            "edited_at": self._edited_at.isoformat(),
             "attachments": [attachment.to_dict() for attachment in self._attachments],
             "announcement_text": self.__announcement_text,
+            "comments": [comment.to_dict() for comment in self._comments],
         }
 
 
@@ -164,12 +177,13 @@ class Material(TopicMixin, TitleMixin, DescriptionMixin, BaseItem):
     def to_dict(self) -> dict:
         return {
             "id": self._id,
-            "created_at": self._created_at,
-            "edited_at": self._edited_at,
+            "created_at": self._created_at.isoformat(),
+            "edited_at": self._edited_at.isoformat(),
             "attachments": [attachment.to_dict() for attachment in self._attachments],
             "topic": self._topic.to_dict() if self._topic else None,
             "title": self._title,
             "description": self._description,
+            "comments": [comment.to_dict() for comment in self._comments],
         }
 
 
@@ -205,14 +219,15 @@ class Assignment(
     def to_dict(self) -> dict:
         return {
             "id": self._id,
-            "created_at": self._created_at,
-            "edited_at": self._edited_at,
+            "created_at": self._created_at.isoformat(),
+            "edited_at": self._edited_at.isoformat(),
             "attachments": [attachment.to_dict() for attachment in self._attachments],
             "topic": self._topic.to_dict() if self._topic else None,
             "title": self._title,
             "description": self._description,
             "due_date": self._due_date,
             "point": self._point,
+            "comments": [comment.to_dict() for comment in self._comments],
         }
 
 
@@ -248,15 +263,17 @@ class Question(
     def to_dict(self) -> dict:
         return {
             "id": self._id,
-            "created_at": self._created_at,
-            "edited_at": self._edited_at,
+            "created_at": self._created_at.isoformat(),
+            "edited_at": self._edited_at.isoformat(),
             "attachments": [attachment.to_dict() for attachment in self._attachments],
             "topic": self._topic.to_dict() if self._topic else None,
             "title": self._title,
             "description": self._description,
             "due_date": self._due_date,
             "point": self._point,
+            "comments": [comment.to_dict() for comment in self._comments],
         }
+
 
 class MultipleChoiceQuestion(Question):
     def __init__(
@@ -284,8 +301,8 @@ class MultipleChoiceQuestion(Question):
     def to_dict(self) -> dict:
         return {
             "id": self._id,
-            "created_at": self._created_at,
-            "edited_at": self._edited_at,
+            "created_at": self._created_at.isoformat(),
+            "edited_at": self._edited_at.isoformat(),
             "attachments": [attachment.to_dict() for attachment in self._attachments],
             "topic": self._topic.to_dict() if self._topic else None,
             "title": self._title,
@@ -293,4 +310,5 @@ class MultipleChoiceQuestion(Question):
             "due_date": self._due_date,
             "point": self._point,
             "choices": self.__choices,
+            "comments": [comment.to_dict() for comment in self._comments],
         }

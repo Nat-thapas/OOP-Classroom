@@ -54,6 +54,10 @@ class CreateClassroomItemModel(BaseModel):
     choices: Annotated[list[str], MinLen(1)] | None
 
 
+class AddCommentModel(BaseModel):
+    comment: Annotated[str, Field(min_length=1, max_length=512)]
+
+
 class SubmissionModel(BaseModel):
     attachments_id: Annotated[list[str], MaxLen(8)]
 

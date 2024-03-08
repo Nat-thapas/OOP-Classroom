@@ -1,6 +1,7 @@
 import os
 import random
 from datetime import datetime
+from functools import lru_cache
 from uuid import uuid4
 
 from ..config.config import get_settings
@@ -19,6 +20,7 @@ from .user import User
 settings = get_settings()
 
 
+@lru_cache
 def get_valid_banner_images() -> list[str]:
     banner_categories = os.listdir(settings.banner_images_storage_path)
     banner_images: list[str] = []
@@ -29,6 +31,7 @@ def get_valid_banner_images() -> list[str]:
     return banner_images
 
 
+@lru_cache
 def get_general_banner_images() -> list[str]:
     banner_images: list[str] = []
     category = "General"

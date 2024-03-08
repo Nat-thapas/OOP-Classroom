@@ -16,9 +16,13 @@ settings = get_settings()
 async def lifespan(_: FastAPI):
     rmtree(settings.attachments_storage_path, ignore_errors=True)
     mkdir(settings.attachments_storage_path)
+    rmtree(settings.avatar_images_storage_path, ignore_errors=True)
+    mkdir(settings.avatar_images_storage_path)
     yield
     rmtree(settings.attachments_storage_path, ignore_errors=True)
     mkdir(settings.attachments_storage_path)
+    rmtree(settings.avatar_images_storage_path, ignore_errors=True)
+    mkdir(settings.avatar_images_storage_path)
 
 
 app = FastAPI(lifespan=lifespan)

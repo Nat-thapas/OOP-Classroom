@@ -13,6 +13,7 @@ class Settings(BaseSettings):
     classroom_code_length: int
     attachments_storage_path: Path
     banner_images_storage_path: Path
+    avatar_images_storage_path: Path
 
 
 @lru_cache()
