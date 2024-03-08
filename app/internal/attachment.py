@@ -44,7 +44,7 @@ class Attachment:
     @property
     def path(self) -> str:
         return self.__get_path()
-    
+
     @property
     def owner(self) -> User:
         return self.__owner

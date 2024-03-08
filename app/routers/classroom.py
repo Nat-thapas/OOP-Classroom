@@ -1,7 +1,9 @@
+import os
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, status
 
+from ..config.config import get_settings
 from ..constants.enums import ClassroomItemType
 from ..dependencies.authentication import get_current_user
 from ..dependencies.classroom import (
@@ -26,6 +28,8 @@ from ..models.classroom import (
     SubmissionModel,
     UpdateClassroomModel,
 )
+
+settings = get_settings()
 
 router = APIRouter(
     prefix="/classrooms",
@@ -61,6 +65,20 @@ async def join_classroom(
         raise HTTPException(status.HTTP_400_BAD_REQUEST, "User already in classroom")
     classroom.add_student(user)
     return classroom.to_dict(filter_item_for_user=user)
+
+
+@router.get("/banner-images")
+async def get_banner_images():
+    banner_categories = os.listdir(settings.banner_images_storage_path)
+    banner_images: dict[str, list[str]] = {}
+    for category in banner_categories:
+        category_path = os.path.join(settings.banner_images_storage_path, category)
+        for image in os.listdir(category_path):
+            if category in banner_images:
+                banner_images[category].append(image)
+            else:
+                banner_images[category] = [image]
+    return banner_images
 
 
 @router.get("/{classroom_id}", dependencies=[Depends(verify_user_in_classroom)])

@@ -43,10 +43,6 @@ class Controller:
                 return user
         return None
 
-    def delete_user(self, user: User) -> None:
-        if user in self.__users:
-            self.__users.remove(user)
-
     def create_classroom(
         self,
         owner: User,
