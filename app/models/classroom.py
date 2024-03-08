@@ -45,7 +45,7 @@ class CreateClassroomItemModel(BaseModel):
     type: ClassroomItemType
     topic_id: str | None
     attachments_id: Annotated[list[str], MaxLen(8)]
-    assigned_to_students_id: list[str]
+    assigned_to_students_id: list[str] | None
     title: Annotated[str, Field(min_length=1, max_length=256)] | None
     description: Annotated[str, Field(min_length=1, max_length=2048)] | None
     announcement_text: Annotated[str, Field(min_length=1, max_length=2048)] | None

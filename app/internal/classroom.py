@@ -167,8 +167,8 @@ class Classroom:
                 classroom_dict["items"] = [
                     item.to_dict()
                     for item in self.__items
-                    if filter_item_for_user in item.assigned_to_students
-                    or not item.assigned_to_students
+                    if item.assigned_to_students is None
+                    or filter_item_for_user in item.assigned_to_students
                 ]
             else:
                 classroom_dict["items"] = [item.to_dict() for item in self.__items]
@@ -203,12 +203,13 @@ class Classroom:
     def create_announcement(
         self,
         attachments: list[Attachment],
-        assigned_to_students: list[User],
+        assigned_to_students: list[User] | None,
         announcement_text: str,
     ):
-        for student in assigned_to_students:
-            if student not in self.__students:
-                raise ValueError("Invalid student")
+        if assigned_to_students:
+            for student in assigned_to_students:
+                if student not in self.__students:
+                    raise ValueError("Invalid student")
         announcement = Announcement(
             attachments, assigned_to_students, announcement_text
         )
@@ -219,15 +220,16 @@ class Classroom:
         self,
         topic: Topic | None,
         attachments: list[Attachment],
-        assigned_to_students: list[User],
+        assigned_to_students: list[User] | None,
         title: str,
         description: str | None,
     ):
         if topic and topic not in self.__topics:
             raise ValueError("Invalid topic")
-        for student in assigned_to_students:
-            if student not in self.__students:
-                raise ValueError("Invalid student")
+        if assigned_to_students:
+            for student in assigned_to_students:
+                if student not in self.__students:
+                    raise ValueError("Invalid student")
         material = Material(
             topic, attachments, assigned_to_students, title, description
         )
@@ -238,7 +240,7 @@ class Classroom:
         self,
         topic: Topic | None,
         attachments: list[Attachment],
-        assigned_to_students: list[User],
+        assigned_to_students: list[User] | None,
         title: str,
         description: str | None,
         due_date: datetime | None,
@@ -246,9 +248,10 @@ class Classroom:
     ):
         if topic and topic not in self.__topics:
             raise ValueError("Invalid topic")
-        for student in assigned_to_students:
-            if student not in self.__students:
-                raise ValueError("Invalid student")
+        if assigned_to_students:
+            for student in assigned_to_students:
+                if student not in self.__students:
+                    raise ValueError("Invalid student")
         assignment = Assignment(
             topic,
             attachments,
@@ -265,7 +268,7 @@ class Classroom:
         self,
         topic: Topic | None,
         attachments: list[Attachment],
-        assigned_to_students: list[User],
+        assigned_to_students: list[User] | None,
         title: str,
         description: str | None,
         due_date: datetime | None,
@@ -273,9 +276,10 @@ class Classroom:
     ):
         if topic and topic not in self.__topics:
             raise ValueError("Invalid topic")
-        for student in assigned_to_students:
-            if student not in self.__students:
-                raise ValueError("Invalid student")
+        if assigned_to_students:
+            for student in assigned_to_students:
+                if student not in self.__students:
+                    raise ValueError("Invalid student")
         question = Question(
             topic,
             attachments,
@@ -292,7 +296,7 @@ class Classroom:
         self,
         topic: Topic | None,
         attachments: list[Attachment],
-        assigned_to_students: list[User],
+        assigned_to_students: list[User] | None,
         title: str,
         description: str | None,
         due_date: datetime | None,
@@ -301,9 +305,10 @@ class Classroom:
     ):
         if topic and topic not in self.__topics:
             raise ValueError("Invalid topic")
-        for student in assigned_to_students:
-            if student not in self.__students:
-                raise ValueError("Invalid student")
+        if assigned_to_students:
+            for student in assigned_to_students:
+                if student not in self.__students:
+                    raise ValueError("Invalid student")
         multiple_choice_question = MultipleChoiceQuestion(
             topic,
             attachments,

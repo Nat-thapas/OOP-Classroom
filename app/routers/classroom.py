@@ -150,8 +150,8 @@ async def get_classroom_items(
     return [
         item.to_dict()
         for item in classroom.items
-        if user in item.assigned_to_students
-        or not item.assigned_to_students
+        if item.assigned_to_students is None
+        or user in item.assigned_to_students
         or user == classroom.owner
     ]
 
@@ -176,12 +176,15 @@ async def create_classroom_item(
     if None in attachments:
         raise HTTPException(status.HTTP_400_BAD_REQUEST, "Invalid attachment ID")
     attachments = [attachment for attachment in attachments if attachment]
-    assigned_to_students = list(
-        map(controller.get_user_by_id, body.assigned_to_students_id)
-    )
-    if None in assigned_to_students:
-        raise HTTPException(status.HTTP_400_BAD_REQUEST, "Invalid student ID")
-    assigned_to_students = [student for student in assigned_to_students if student]
+    if body.assigned_to_students_id:
+        assigned_to_students = list(
+            map(controller.get_user_by_id, body.assigned_to_students_id)
+        )
+        if None in assigned_to_students:
+            raise HTTPException(status.HTTP_400_BAD_REQUEST, "Invalid student ID")
+        assigned_to_students = [student for student in assigned_to_students if student]
+    else:
+        assigned_to_students = None
     try:
         if item_type == ClassroomItemType.ANNOUNCEMENT:
             announcement_text = body.announcement_text
@@ -266,8 +269,8 @@ async def get_classroom_item(
     item: Annotated[BaseItem, Depends(get_item_from_path)],
 ):
     if (
-        user in item.assigned_to_students
-        or not item.assigned_to_students
+        item.assigned_to_students is None
+        or user in item.assigned_to_students
         or user == classroom.owner
     ):
         return item.to_dict()

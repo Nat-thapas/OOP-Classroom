@@ -10,14 +10,14 @@ from .topic import Topic
 
 class BaseItem(ABC):
     def __init__(
-        self, attachments: list[Attachment], assigned_to_students: list[User], **kwargs
+        self, attachments: list[Attachment], assigned_to_students: list[User] | None, **kwargs
     ) -> None:
         super().__init__(**kwargs)
         self._id: str = str(uuid4())
         self._created_at: datetime = datetime.now()
         self._edited_at: datetime = datetime.now()
         self._attachments: list[Attachment] = attachments
-        self._assigned_to_students: list[User] = assigned_to_students
+        self._assigned_to_students: list[User] | None = assigned_to_students
 
     @property
     def id(self) -> str:
@@ -32,7 +32,7 @@ class BaseItem(ABC):
         return self._edited_at
 
     @property
-    def assigned_to_students(self) -> list[User]:
+    def assigned_to_students(self) -> list[User] | None:
         return self._assigned_to_students
 
     @abstractmethod
@@ -121,7 +121,7 @@ class Announcement(BaseItem):
     def __init__(
         self,
         attachments: list[Attachment],
-        assigned_to_students: list[User],
+        assigned_to_students: list[User] | None,
         announcement_text: str,
     ) -> None:
         super().__init__(
@@ -149,7 +149,7 @@ class Material(TopicMixin, TitleMixin, DescriptionMixin, BaseItem):
         self,
         topic: Topic | None,
         attachments: list[Attachment],
-        assigned_to_students: list[User],
+        assigned_to_students: list[User] | None,
         title: str,
         description: str | None,
     ):
@@ -186,7 +186,7 @@ class Assignment(
         self,
         topic: Topic | None,
         attachments: list[Attachment],
-        assigned_to_students: list[User],
+        assigned_to_students: list[User] | None,
         title: str,
         description: str | None,
         due_date: datetime | None,
@@ -229,7 +229,7 @@ class Question(
         self,
         topic: Topic | None,
         attachments: list[Attachment],
-        assigned_to_students: list[User],
+        assigned_to_students: list[User] | None,
         title: str,
         description: str | None,
         due_date: datetime | None,
@@ -263,7 +263,7 @@ class MultipleChoiceQuestion(Question):
         self,
         topic: Topic | None,
         attachments: list[Attachment],
-        assigned_to_students: list[User],
+        assigned_to_students: list[User] | None,
         title: str,
         description: str | None,
         due_date: datetime | None,
