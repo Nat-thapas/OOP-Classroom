@@ -2,10 +2,11 @@ from datetime import datetime
 from typing import Annotated
 
 from annotated_types import MaxLen, MinLen
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, validator
 
 from ..config.config import get_settings
 from ..constants.enums import ClassroomItemType
+from ..internal.classroom import get_valid_banner_images
 
 settings = get_settings()
 
@@ -16,6 +17,15 @@ class CreateClassroomModel(BaseModel):
     subject: Annotated[str, Field(min_length=1, max_length=32)] | None
     room: Annotated[str, Field(min_length=1, max_length=16)] | None
 
+class UpdateClassroomModel(CreateClassroomModel):
+    banner_path: str
+
+    @validator("banner_path")
+    @classmethod
+    def validate_banner_path(cls, value: str) -> str:
+        if value not in get_valid_banner_images():
+            raise ValueError("Invalid banner path")
+        return value
 
 class JoinClassroomModel(BaseModel):
     classroom_code: Annotated[

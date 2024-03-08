@@ -43,6 +43,10 @@ class Controller:
                 return user
         return None
 
+    def delete_user(self, user: User) -> None:
+        if user in self.__users:
+            self.__users.remove(user)
+
     def create_classroom(
         self,
         owner: User,
@@ -82,6 +86,10 @@ class Controller:
             raise UserAlreadyInClassroom("User already exist in that classroom")
         classroom.add_student(user)
         return classroom
+
+    def delete_classroom(self, classroom: Classroom) -> None:
+        if classroom in self.__classrooms:
+            self.__classrooms.remove(classroom)
 
     def create_attachment(
         self, original_filename: str, content_type: str, data: BinaryIO, owner: User

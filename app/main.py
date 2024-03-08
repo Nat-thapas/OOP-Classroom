@@ -4,6 +4,7 @@ from shutil import rmtree
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 
 from .config.config import get_settings
 from .routers import attachment, auth, classroom, user
@@ -13,14 +14,16 @@ settings = get_settings()
 
 @asynccontextmanager
 async def lifespan(_: FastAPI):
-    rmtree(settings.files_storage_path, ignore_errors=True)
-    mkdir(settings.files_storage_path)
+    rmtree(settings.attachments_storage_path, ignore_errors=True)
+    mkdir(settings.attachments_storage_path)
     yield
-    rmtree(settings.files_storage_path, ignore_errors=True)
-    mkdir(settings.files_storage_path)
+    rmtree(settings.attachments_storage_path, ignore_errors=True)
+    mkdir(settings.attachments_storage_path)
 
 
 app = FastAPI(lifespan=lifespan)
+
+app.mount("/static", StaticFiles(directory="app/static"), name="static")
 
 app.add_middleware(
     CORSMiddleware,

@@ -11,7 +11,8 @@ class Settings(BaseSettings):
     algorithm: str
     access_token_expire_minutes: int
     classroom_code_length: int
-    files_storage_path: Path
+    attachments_storage_path: Path
+    banner_images_storage_path: Path
 
 
 @lru_cache()

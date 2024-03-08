@@ -54,7 +54,7 @@ def verify_user_is_classroom_owner(
     classroom: Annotated[Classroom, Depends(get_classroom_from_path)],
 ) -> None:
     if user != classroom.owner:
-        raise HTTPException(status.HTTP_403_FORBIDDEN, "User is not classroom owner")
+        raise HTTPException(status.HTTP_403_FORBIDDEN, "User is not the classroom owner")
 
 
 def verify_user_is_student(
@@ -64,4 +64,4 @@ def verify_user_is_student(
     if user not in classroom:
         raise HTTPException(status.HTTP_403_FORBIDDEN, "User not in classroom")
     if user == classroom.owner:
-        raise HTTPException(status.HTTP_400_BAD_REQUEST, "User is classroom owner")
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, "User is the classroom owner")

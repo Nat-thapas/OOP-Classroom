@@ -1,3 +1,4 @@
+import os
 import random
 from datetime import datetime
 from uuid import uuid4
@@ -16,6 +17,25 @@ from .topic import Topic
 from .user import User
 
 settings = get_settings()
+
+
+def get_valid_banner_images() -> list[str]:
+    banner_categories = os.listdir(settings.banner_images_storage_path)
+    banner_images: list[str] = []
+    for category in banner_categories:
+        category_path = os.path.join(settings.banner_images_storage_path, category)
+        for image in os.listdir(category_path):
+            banner_images.append(f"static/banner-images/{category}/{image}")
+    return banner_images
+
+
+def get_general_banner_images() -> list[str]:
+    banner_images: list[str] = []
+    category = "General"
+    category_path = os.path.join(settings.banner_images_storage_path, category)
+    for image in os.listdir(category_path):
+        banner_images.append(f"static/banner-images/{category}/{image}")
+    return banner_images
 
 
 class Classroom:
@@ -41,6 +61,7 @@ class Classroom:
         self.__students: list[User] = []
         self.__topics: list[Topic] = []
         self.__items: list[BaseItem] = []
+        self.__banner_path: str = random.choice(get_general_banner_images())
 
     def __contains__(self, item: User | Topic | BaseItem) -> bool:
         if item == self.__owner:
@@ -62,6 +83,18 @@ class Classroom:
         return self.__name
 
     @property
+    def section(self) -> str | None:
+        return self.__section
+
+    @property
+    def subject(self) -> str | None:
+        return self.__subject
+
+    @property
+    def room(self) -> str | None:
+        return self.__room
+
+    @property
     def owner(self) -> User:
         return self.__owner
 
@@ -81,6 +114,32 @@ class Classroom:
     def items(self) -> list[BaseItem]:
         return self.__items
 
+    @property
+    def banner_path(self) -> str:
+        return self.__banner_path
+
+    @name.setter
+    def name(self, name: str) -> None:
+        self.__name = name
+
+    @section.setter
+    def section(self, section: str | None) -> None:
+        self.__section = section
+
+    @subject.setter
+    def subject(self, subject: str | None) -> None:
+        self.__subject = subject
+
+    @room.setter
+    def room(self, room: str | None) -> None:
+        self.__room = room
+
+    @banner_path.setter
+    def banner_path(self, banner_path: str) -> None:
+        if banner_path not in get_valid_banner_images():
+            raise ValueError("Invalid banner path")
+        self.__banner_path = banner_path
+
     def to_dict(
         self,
         include_code: bool = False,
@@ -94,6 +153,7 @@ class Classroom:
             "section": self.__section,
             "subject": self.__subject,
             "room": self.__room,
+            "banner_path": self.__banner_path,
         }
         if include_code:
             classroom_dict["code"] = self.__code

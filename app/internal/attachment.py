@@ -26,7 +26,7 @@ class Attachment:
             self.__size: int = output_file.write(data.read())
 
     def __get_path(self) -> str:
-        return os.path.join(settings.files_storage_path, self.__id)
+        return os.path.join(settings.attachments_storage_path, self.__id)
 
     @property
     def id(self) -> str:
@@ -44,6 +44,10 @@ class Attachment:
     @property
     def path(self) -> str:
         return self.__get_path()
+    
+    @property
+    def owner(self) -> User:
+        return self.__owner
 
     def to_dict(self) -> dict:
         return {

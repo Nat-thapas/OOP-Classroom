@@ -24,6 +24,7 @@ from ..models.classroom import (
     GradeSubmissionModel,
     JoinClassroomModel,
     SubmissionModel,
+    UpdateClassroomModel,
 )
 
 router = APIRouter(
@@ -71,6 +72,33 @@ async def get_classroom(
     return classroom.to_dict(
         include_code=include_code, include_lists=True, filter_item_for_user=user
     )
+
+
+@router.patch(
+    "/{classroom_id}",
+    dependencies=[Depends(get_current_user), Depends(verify_user_is_classroom_owner)],
+)
+async def update_classroom(
+    body: UpdateClassroomModel,
+    classroom: Annotated[Classroom, Depends(get_classroom_from_path)],
+):
+    classroom.name = body.name
+    classroom.section = body.section
+    classroom.subject = body.subject
+    classroom.room = body.room
+    classroom.banner_path = body.banner_path
+    return classroom.to_dict()
+
+
+@router.delete(
+    "/{classroom_id}",
+    dependencies=[Depends(get_current_user), Depends(verify_user_is_classroom_owner)],
+)
+async def delete_classroom(
+    classroom: Annotated[Classroom, Depends(get_classroom_from_path)]
+):
+    controller.delete_classroom(classroom)
+    return {"message": "Classroom deleted successfully"}
 
 
 @router.get(

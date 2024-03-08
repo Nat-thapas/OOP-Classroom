@@ -23,5 +23,17 @@ class User:
     def hashed_password(self) -> str:
         return self.__hashed_password
 
+    @username.setter
+    def username(self, username: str) -> None:
+        self.__username = username
+
+    @email.setter
+    def email(self, email: str) -> None:
+        self.__email = email
+
+    @hashed_password.setter
+    def hashed_password(self, hashed_password: str) -> None:
+        self.__hashed_password = hashed_password
+
     def to_dict(self):
         return {"id": self.__id, "username": self.__username, "email": self.__email}
