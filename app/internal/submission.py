@@ -20,10 +20,18 @@ class Submission:
     @property
     def owner(self) -> User:
         return self.__owner
+    
+    @property
+    def attachments(self) -> list[Attachment]:
+        return self.__attachments
 
     @property
     def point(self) -> int | None:
         return self.__point
+    
+    @attachments.setter
+    def attachments(self, attachments: list[Attachment]) -> None:
+        self.__attachments = attachments
 
     @point.setter
     def point(self, point: int | None) -> None:

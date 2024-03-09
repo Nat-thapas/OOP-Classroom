@@ -324,3 +324,9 @@ class Classroom:
         )
         self.__items.append(multiple_choice_question)
         return multiple_choice_question
+
+    def delete_item(self, item: BaseItem) -> bool:
+        if item not in self.__items:
+            return False
+        self.__items.remove(item)
+        return True

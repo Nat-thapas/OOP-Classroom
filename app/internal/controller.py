@@ -83,9 +83,11 @@ class Controller:
         classroom.add_student(user)
         return classroom
 
-    def delete_classroom(self, classroom: Classroom) -> None:
-        if classroom in self.__classrooms:
-            self.__classrooms.remove(classroom)
+    def delete_classroom(self, classroom: Classroom) -> bool:
+        if classroom not in self.__classrooms:
+            return False
+        self.__classrooms.remove(classroom)
+        return True
 
     def create_attachment(
         self, original_filename: str, content_type: str, data: BinaryIO, owner: User

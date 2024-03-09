@@ -37,8 +37,22 @@ class BaseItem(ABC):
         return self._edited_at
 
     @property
+    def attachments(self) -> list[Attachment]:
+        return self._attachments
+
+    @property
     def assigned_to_students(self) -> list[User] | None:
         return self._assigned_to_students
+
+    @assigned_to_students.setter
+    def assigned_to_students(self, assinged_to_students: list[User] | None) -> None:
+        self._edited_at = datetime.now()
+        self._assigned_to_students = assinged_to_students
+
+    @attachments.setter
+    def attachments(self, attachments: list[Attachment]) -> None:
+        self._edited_at = datetime.now()
+        self._attachments = attachments
 
     @abstractmethod
     def to_dict(self) -> dict:
@@ -59,6 +73,11 @@ class TopicMixin:
     def topic(self) -> Topic | None:
         return self._topic
 
+    @topic.setter
+    def topic(self, topic: Topic | None) -> None:
+        self._edited_at = datetime.now()
+        self._topic = topic
+
 
 class TitleMixin:
     def __init__(self, title: str, **kwargs) -> None:
@@ -68,6 +87,11 @@ class TitleMixin:
     @property
     def title(self) -> str:
         return self._title
+
+    @title.setter
+    def title(self, title: str) -> None:
+        self._edited_at = datetime.now()
+        self._title = title
 
 
 class DescriptionMixin:
@@ -79,6 +103,11 @@ class DescriptionMixin:
     def description(self) -> str | None:
         return self._description
 
+    @description.setter
+    def description(self, description: str | None) -> None:
+        self._edited_at = datetime.now()
+        self._description = description
+
 
 class PointMixin:
     def __init__(self, point: int | None, **kwargs) -> None:
@@ -89,6 +118,11 @@ class PointMixin:
     def point(self) -> int | None:
         return self._point
 
+    @point.setter
+    def point(self, point: int | None) -> None:
+        self._edited_at = datetime.now()
+        self._point = point
+
 
 class DueDateMixin:
     def __init__(self, due_date: datetime | None, **kwargs) -> None:
@@ -98,6 +132,11 @@ class DueDateMixin:
     @property
     def due_date(self) -> datetime | None:
         return self._due_date
+
+    @due_date.setter
+    def due_date(self, due_date: datetime | None) -> None:
+        self._edited_at = datetime.now()
+        self._due_date = due_date
 
 
 class SubmissionsMixin:
@@ -128,6 +167,12 @@ class SubmissionsMixin:
                 return submission
         return None
 
+    def delete_submission(self, submission: Submission) -> bool:
+        if submission not in self._submissions:
+            return False
+        self._submissions.remove(submission)
+        return True
+
 
 class Announcement(BaseItem):
     def __init__(
@@ -145,6 +190,11 @@ class Announcement(BaseItem):
     @property
     def announcement_text(self) -> str:
         return self.__announcement_text
+
+    @announcement_text.setter
+    def announcement_text(self, announcement_text: str) -> None:
+        self._edited_at = datetime.now()
+        self.__announcement_text = announcement_text
 
     def to_dict(self) -> dict:
         return {
@@ -297,6 +347,15 @@ class MultipleChoiceQuestion(Question):
             point=point,
         )
         self.__choices: list[str] = choices
+
+    @property
+    def choices(self) -> list[str]:
+        return self.__choices
+
+    @choices.setter
+    def choices(self, choices: list[str]) -> None:
+        self._edited_at = datetime.now()
+        self.__choices = choices
 
     def to_dict(self) -> dict:
         return {

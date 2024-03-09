@@ -1,6 +1,8 @@
+import signal
 from contextlib import asynccontextmanager
 from os import mkdir
 from shutil import rmtree
+from types import FrameType
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -14,6 +16,12 @@ settings = get_settings()
 
 @asynccontextmanager
 async def lifespan(_: FastAPI):
+    default_sigint_handler = signal.getsignal(signal.SIGINT)
+
+    def terminate_now(signum: int, frame: FrameType = None):  # type: ignore
+        default_sigint_handler(signum, frame)  # type: ignore
+
+    signal.signal(signal.SIGINT, terminate_now)  # type: ignore
     rmtree(settings.attachments_storage_path, ignore_errors=True)
     mkdir(settings.attachments_storage_path)
     rmtree(settings.avatar_images_storage_path, ignore_errors=True)

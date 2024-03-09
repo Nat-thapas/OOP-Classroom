@@ -17,7 +17,15 @@ from ..dependencies.classroom import (
 )
 from ..internal.classroom import Classroom
 from ..internal.controller import controller
-from ..internal.items import BaseItem, SubmissionsMixin
+from ..internal.items import (
+    Announcement,
+    Assignment,
+    BaseItem,
+    Material,
+    MultipleChoiceQuestion,
+    Question,
+    SubmissionsMixin,
+)
 from ..internal.submission import Submission
 from ..internal.user import User
 from ..models.classroom import (
@@ -28,6 +36,7 @@ from ..models.classroom import (
     GradeSubmissionModel,
     JoinClassroomModel,
     SubmissionModel,
+    UpdateClassroomItemModel,
     UpdateClassroomModel,
 )
 
@@ -122,7 +131,10 @@ async def update_classroom(
 async def delete_classroom(
     classroom: Annotated[Classroom, Depends(get_classroom_from_path)]
 ):
-    controller.delete_classroom(classroom)
+    if not controller.delete_classroom(classroom):
+        raise HTTPException(
+            status.HTTP_500_INTERNAL_SERVER_ERROR, "Failed to delete classroom"
+        )
     return {"message": "Classroom deleted successfully"}
 
 
@@ -285,6 +297,120 @@ async def get_classroom_item(
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Item not found")
 
 
+@router.patch(
+    "/{classroom_id}/items/{item_id}",
+    dependencies=[Depends(get_current_user), Depends(verify_user_is_classroom_owner)],
+)
+async def update_classroom_item(
+    body: UpdateClassroomItemModel,
+    classroom: Annotated[Classroom, Depends(get_classroom_from_path)],
+    item: Annotated[BaseItem, Depends(get_item_from_path)],
+):
+    if body.topic_id:
+        topic = classroom.get_topic_by_id(body.topic_id)
+        if topic is None:
+            raise HTTPException(status.HTTP_400_BAD_REQUEST, "Invalid topic ID")
+    else:
+        topic = None
+    attachments = list(map(controller.get_attachment_by_id, body.attachments_id))
+    if None in attachments:
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, "Invalid attachment ID")
+    attachments = [attachment for attachment in attachments if attachment]
+    if body.assigned_to_students_id:
+        assigned_to_students = list(
+            map(controller.get_user_by_id, body.assigned_to_students_id)
+        )
+        if None in assigned_to_students:
+            raise HTTPException(status.HTTP_400_BAD_REQUEST, "Invalid student ID")
+        assigned_to_students = [student for student in assigned_to_students if student]
+    else:
+        assigned_to_students = None
+    try:
+        if isinstance(item, Announcement):
+            announcement_text = body.announcement_text
+            if announcement_text is None:
+                raise HTTPException(
+                    status.HTTP_400_BAD_REQUEST, "Announcement text is required"
+                )
+            item.attachments = attachments
+            item.assigned_to_students = assigned_to_students
+            item.announcement_text = announcement_text
+            return item.to_dict()
+
+        title = body.title
+        if title is None:
+            raise HTTPException(status.HTTP_400_BAD_REQUEST, "Title is required")
+        description = body.description
+
+        if isinstance(item, Material):
+            item.topic = topic
+            item.attachments = attachments
+            item.assigned_to_students = assigned_to_students
+            item.title = title
+            item.description = description
+            return item.to_dict()
+
+        due_date = body.due_date
+        point = body.point
+
+        if isinstance(item, Assignment):
+            item.topic = topic
+            item.attachments = attachments
+            item.assigned_to_students = assigned_to_students
+            item.title = title
+            item.description = description
+            item.due_date = due_date
+            item.point = point
+            return item.to_dict()
+
+        if isinstance(item, Question):
+            item.topic = topic
+            item.attachments = attachments
+            item.assigned_to_students = assigned_to_students
+            item.title = title
+            item.description = description
+            item.due_date = due_date
+            item.point = point
+            return item.to_dict()
+
+        choices = body.choices
+        if choices is None:
+            raise HTTPException(
+                status.HTTP_400_BAD_REQUEST, "At least one choice is required"
+            )
+
+        if isinstance(item, MultipleChoiceQuestion):
+            item.topic = topic
+            item.attachments = attachments
+            item.assigned_to_students = assigned_to_students
+            item.title = title
+            item.description = description
+            item.due_date = due_date
+            item.point = point
+            item.choices = choices
+            return item.to_dict()
+
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, "Invalid item type")
+
+    except ValueError as exp:
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, "Invalid data") from exp
+
+
+@router.delete(
+    "/{classroom_id}/items/{item_id}",
+    dependencies=[Depends(get_current_user), Depends(verify_user_is_classroom_owner)],
+)
+async def delete_classroom_item(
+    classroom: Annotated[Classroom, Depends(get_classroom_from_path)],
+    item: Annotated[BaseItem, Depends(get_item_from_path)],
+):
+    if not classroom.delete_item(item):
+        raise HTTPException(
+            status.HTTP_500_INTERNAL_SERVER_ERROR, "Failed to delete item"
+        )
+    return {"message": "Item deleted successfully"}
+
+
 @router.post(
     "/{classroom_id}/items/{item_id}/comments",
     status_code=status.HTTP_201_CREATED,
@@ -346,8 +472,56 @@ async def add_classroom_item_submission(
             status.HTTP_400_BAD_REQUEST, "Item type does not support submission"
         )
     attachments = list(map(controller.get_attachment_by_id, body.attachments_id))
+    if None in attachments:
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, "Invalid attachment ID")
     attachments = [attachment for attachment in attachments if attachment]
     return item.create_submission(user, attachments).to_dict()
+
+
+@router.patch(
+    "/{classroom_id}/items/{item_id}/submissions/@me",
+    dependencies=[Depends(verify_user_is_student)],
+)
+async def update_classroom_item_submission(
+    body: SubmissionModel,
+    user: Annotated[User, Depends(get_current_user)],
+    item: Annotated[BaseItem, Depends(get_item_from_path)],
+):
+    if not isinstance(item, SubmissionsMixin):
+        raise HTTPException(
+            status.HTTP_400_BAD_REQUEST, "Item type does not support submission"
+        )
+    submission = item.get_submission_by_owner(user)
+    if not submission:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Submission not found")
+    attachments = list(map(controller.get_attachment_by_id, body.attachments_id))
+    if None in attachments:
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, "Invalid attachment ID")
+    attachments = [attachment for attachment in attachments if attachment]
+    submission.attachments = attachments
+    return submission.to_dict()
+
+
+@router.delete(
+    "/{classroom_id}/items/{item_id}/submissions/@me",
+    dependencies=[Depends(verify_user_is_student)],
+)
+async def delete_classroom_item_submission(
+    user: Annotated[User, Depends(get_current_user)],
+    item: Annotated[BaseItem, Depends(get_item_from_path)],
+):
+    if not isinstance(item, SubmissionsMixin):
+        raise HTTPException(
+            status.HTTP_400_BAD_REQUEST, "Item type does not support submission"
+        )
+    submission = item.get_submission_by_owner(user)
+    if not submission:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Submission not found")
+    if not item.delete_submission(submission):
+        raise HTTPException(
+            status.HTTP_500_INTERNAL_SERVER_ERROR, "Failed to delete submission"
+        )
+    return {"message": "Submission deleted successfully"}
 
 
 @router.post(
