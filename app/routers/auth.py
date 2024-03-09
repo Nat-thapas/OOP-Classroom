@@ -1,12 +1,12 @@
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, status
-from fastapi.responses import JSONResponse
 from fastapi.security import OAuth2PasswordRequestForm
 
 from ..dependencies.authentication import (
     authenticate_user,
     create_access_token,
+    get_current_user,
     get_password_hash,
 )
 from ..exceptions.user import EmailAlreadyInUse
@@ -20,7 +20,7 @@ router = APIRouter(
 )
 
 
-@router.post("/register")
+@router.post("/register", status_code=status.HTTP_201_CREATED)
 async def register(body: RegisterModel):
     try:
         user = controller.create_user(
@@ -30,23 +30,23 @@ async def register(body: RegisterModel):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST, detail="Email is already in use"
         ) from exp
-
-    return JSONResponse(
-        status_code=status.HTTP_201_CREATED,
-        content={"message": "User created successfully."},
-        headers={"Authorization": create_access_token(data={"id": user.id})},
-    )
+    return {
+        "access_token": create_access_token(data={"id": user.id}),
+        "token_type": "bearer",
+    }
 
 
 @router.post("/login")
 async def login(body: Annotated[OAuth2PasswordRequestForm, Depends()]):
     user = authenticate_user(body.username, body.password)
-
     if user is None:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid credentials"
         )
-
     token = create_access_token(data={"id": user.id})
-
     return {"access_token": token, "token_type": "bearer"}
+
+
+@router.get("/verify_token", dependencies=[Depends(get_current_user)])
+async def verify_token():
+    return {"message": "You are authenticated"}

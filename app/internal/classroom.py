@@ -65,6 +65,26 @@ class Classroom:
         self.__topics: list[Topic] = []
         self.__items: list[BaseItem] = []
         self.__banner_path: str = random.choice(get_general_banner_images())
+        if "Honors" in self.__banner_path:
+            self.__theme_color: str = settings.theme_colors[7]
+        elif "Breakfast" in self.__banner_path:
+            self.__theme_color: str = settings.theme_colors[3]
+        elif "Graduation" in self.__banner_path:
+            self.__theme_color: str = settings.theme_colors[6]
+        elif "Code" in self.__banner_path:
+            self.__theme_color: str = settings.theme_colors[7]
+        elif "Bookclub" in self.__banner_path:
+            self.__theme_color: str = settings.theme_colors[1]
+        elif "Reachout" in self.__banner_path:
+            self.__theme_color: str = settings.theme_colors[1]
+        elif "LearnLanguage" in self.__banner_path:
+            self.__theme_color: str = settings.theme_colors[0]
+        elif "BackToSchool" in self.__banner_path:
+            self.__theme_color: str = settings.theme_colors[4]
+        elif "Read" in self.__banner_path:
+            self.__theme_color: str = settings.theme_colors[7]
+        else:
+            self.__theme_color: str = random.choice(settings.theme_colors)
 
     def __contains__(self, item: User | Topic | BaseItem) -> bool:
         if item == self.__owner:
@@ -120,6 +140,10 @@ class Classroom:
     @property
     def banner_path(self) -> str:
         return self.__banner_path
+    
+    @property
+    def theme_color(self) -> str:
+        return self.__theme_color
 
     @name.setter
     def name(self, name: str) -> None:
@@ -143,6 +167,12 @@ class Classroom:
             raise ValueError("Invalid banner path")
         self.__banner_path = banner_path
 
+    @theme_color.setter
+    def theme_color(self, theme_color: str) -> None:
+        if theme_color not in settings.theme_colors:
+            raise ValueError("Invalid theme color")
+        self.__theme_color = theme_color
+
     def to_dict(
         self,
         include_code: bool = False,
@@ -157,6 +187,7 @@ class Classroom:
             "subject": self.__subject,
             "room": self.__room,
             "banner_path": self.__banner_path,
+            "theme_color": self.__theme_color,
         }
         if include_code:
             classroom_dict["code"] = self.__code

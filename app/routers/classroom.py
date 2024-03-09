@@ -121,6 +121,7 @@ async def update_classroom(
     classroom.subject = body.subject
     classroom.room = body.room
     classroom.banner_path = body.banner_path
+    classroom.theme_color = body.theme_color
     return classroom.to_dict()
 
 
@@ -390,7 +391,7 @@ async def update_classroom_item(
             item.choices = choices
             return item.to_dict()
 
-        raise HTTPException(status.HTTP_400_BAD_REQUEST, "Invalid item type")
+        raise HTTPException(status.HTTP_500_INTERNAL_SERVER_ERROR, "Unable to get item type")
 
     except ValueError as exp:
         raise HTTPException(status.HTTP_400_BAD_REQUEST, "Invalid data") from exp

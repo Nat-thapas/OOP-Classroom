@@ -14,6 +14,7 @@ class Settings(BaseSettings):
     attachments_storage_path: Path
     banner_images_storage_path: Path
     avatar_images_storage_path: Path
+    theme_colors: list[str]
 
 
 @lru_cache()

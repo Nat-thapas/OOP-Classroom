@@ -20,7 +20,7 @@ class Submission:
     @property
     def owner(self) -> User:
         return self.__owner
-    
+
     @property
     def attachments(self) -> list[Attachment]:
         return self.__attachments
@@ -28,7 +28,7 @@ class Submission:
     @property
     def point(self) -> int | None:
         return self.__point
-    
+
     @attachments.setter
     def attachments(self, attachments: list[Attachment]) -> None:
         self.__attachments = attachments
@@ -40,7 +40,7 @@ class Submission:
     def to_dict(self) -> dict:
         return {
             "id": self.__id,
-            "owner_id": self.__owner.id,
+            "owner": self.__owner.to_dict(),
             "point": self.__point,
             "attachments": [attachment.to_dict() for attachment in self.__attachments],
             "comments": [comment.to_dict() for comment in self.__comments],
