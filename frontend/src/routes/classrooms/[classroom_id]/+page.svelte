@@ -41,7 +41,7 @@
 <div class="w-[64rem] mx-auto">
     <nav class="flex">
         <a href="/classrooms/{classroom_id}" class="h-12 w-32 p-3.5 text-center text-gray-600 font-semibold border-b-4 border-blue-600">Stream</a>
-        <a href="/classrooms/{classroom_id}/classwork" class="h-12 w-32 p-3.5 text-center text-gray-600 font-semibold">Classwork</a>
+        <a href="/classrooms/{classroom_id}/classworks" class="h-12 w-32 p-3.5 text-center text-gray-600 font-semibold">Classwork</a>
         <a href="/classrooms/{classroom_id}/people" class="h-12 w-32 p-3.5 text-center text-gray-600 font-semibold">People</a>
     </nav>
     <hr>
@@ -54,15 +54,54 @@
                 <h1 class="relative top-40 left-7 text-4xl text-white font-semibold">{current_classroom.name}</h1>
             {/if}
         </div>
-        {#await current_user then current_user}
-            {#if current_classroom.owner.id === current_user.id}
-                <div class="flex mx-12 mt-4">
+        <div class="flex">
+            <div class="w-44 ml-12 mr-4 mt-4 h-fit">
+                {#if current_classroom.code}
                     <div class="p-4 w-44 rounded-lg border border-solid border-gray-300">
                         <h3 class="font-medium">Class code</h3>
                         <p style="color: {current_classroom.theme_color};" class="text-2xl font-semibold">{current_classroom.code}</p>
                     </div>
+                {:else}
+                <div class="p-4 w-44 rounded-lg border border-solid border-gray-300">
+                    <h3 class="font-medium mb-4">Upcoming</h3>
+                    <p class="text-gray-500">No work due soon, probably</p>
                 </div>
-            {/if}
-        {/await}
+                {/if}
+            </div>
+            <div class=" w-[44.75rem] m-4 columns-1">
+                {#each current_classroom.items as item}
+                    {#if item.type === "Announcement"}
+                        <h1>Not implemented yet</h1>
+                    {:else}
+                        <a href="/classrooms/{classroom_id}/classworks/{item.id}" class="w-[56rem] mx-auto">
+                            <div class="w-[44rem] h-20 mx-auto bg-white rounded-lg p-4 border border-solid border-gray-300 cursor-pointer hover:drop-shadow-xl">
+                                {#if item.type === "Material"}
+                                <div style="background-color: {current_classroom.theme_color};" class="h-10 w-10 relative left-2 text-lg font-semibold text-white rounded-full inline-flex items-center justify-center">
+                                    <span class="material-symbols-outlined text-white">
+                                        description
+                                    </span>
+                                </div>
+                                {:else if item.type === "Assignment"}
+                                <div style="background-color: {current_classroom.theme_color};" class="h-10 w-10 relative left-2 text-lg font-semibold text-white rounded-full inline-flex items-center justify-center">
+                                    <span class="material-symbols-outlined text-white">
+                                        assignment
+                                    </span>
+                                </div>
+                                {:else}
+                                <div style="background-color: {current_classroom.theme_color};" class="h-10 w-10 relative left-2 text-lg font-semibold text-white rounded-full inline-flex items-center justify-center">
+                                    <span class="material-symbols-outlined text-white">
+                                        live_help
+                                    </span>
+                                </div>
+                                {/if}
+                                <h1 class="text-base font-medium relative -top-10 left-16 text-gray-600">{item.title}</h1>
+                                <h2 class="text-sm relative -top-10 left-16 text-gray-600">Posted: {(new Date(item.created_at)).toDateString()}</h2>
+                            </div>
+                        </a>
+                        <br>
+                    {/if}
+                {/each}
+            </div>
+        </div>
     {/await}
 </div>

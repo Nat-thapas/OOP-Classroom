@@ -164,6 +164,22 @@
     }
 
     async function create_classroom() {
+        if (create_classroom_name.length > 48) {
+            alert("Classname must be less than 48 characters long");
+            return;
+        }
+        if (create_classroom_section && create_classroom_section.length > 16) {
+            alert("Section must be less than 16 characters long");
+            return;
+        }
+        if (create_classroom_subject && create_classroom_subject.length > 32) {
+            alert("Subject must be less than 32 characters long");
+            return;
+        }
+        if (create_classroom_room && create_classroom_room.length > 16) {
+            alert("Room must be less than 16 characters long");
+            return;
+        }
         const response = await fetch(`${api_url}/classrooms`, {
             method: 'POST',
             headers: {
@@ -274,13 +290,13 @@
         </form>
     </div>
 {/if}
-<button class="float-right m-1.5 mt-2 mr-4" on:click={toggle_create_or_join_menu_state}>
-    <span class="material-symbols-outlined pt-1.5 pb-1.5 pl-2 pr-2 cursor-pointer rounded-full hover:bg-gray-100 text-3xl">
-        add
-    </span>
-</button>
+    <button class="float-right m-1.5 mt-2 mr-4" on:click={toggle_create_or_join_menu_state}>
+        <span class="material-symbols-outlined pt-1.5 pb-1.5 pl-2 pr-2 cursor-pointer rounded-full hover:bg-gray-100 text-3xl">
+            add
+        </span>
+    </button>
 {#if is_create_or_join_menu_open}
-    <div class="absolute top-10 right-8 w-fit h-28 bg-white border border-solid border-gray-300 rounded-lg drop-shadow-lg">
+    <div class="absolute top-10 right-20 w-fit h-28 bg-white border border-solid border-gray-300 rounded-lg drop-shadow-lg">
         <button class="block text-left w-32 h-12 pt-3 pb-5 pl-4 pr-4 mt-2 hover:bg-gray-100" on:click={toggle_join_class_menu_state}>Join class</button>
         <button class="block text-left w-32 h-12 pt-3 pb-5 pl-4 pr-4 hover:bg-gray-100" on:click={toggle_create_class_menu_state}>Create class</button>
     </div>
@@ -385,13 +401,13 @@
                     {#if classroom.owner.id === current_user.id}
                     <a href="/classrooms/{classroom.id}" class="h-fit cursor-pointer">
                         <div class="h-12 mt-2 mb-2 mr-3 rounded-r-full hover:bg-gray-100">
-                            <div style="background-color: {classroom.theme_color};" class="h-8 w-8 relative -top-3 left-3 text-lg font-semibold text-white rounded-full inline-flex items-center justify-center">
+                            <div style="background-color: {classroom.theme_color};" class="h-8 w-8 relative -top-[1.125rem] left-3 text-lg font-semibold text-white rounded-full inline-flex items-center justify-center">
                                 {classroom.name[0].toUpperCase()}
                             </div>
-                            <div class="relative {classroom.section ? "top-0.5" : "top-2.5"} ml-6 font-medium inline-block text-gray-600">
+                            <div class="relative {classroom.section ? "top-0.5" : "top-2.5"} ml-6 w-56 font-medium inline-block text-gray-600 text-ellipsis text-nowrap overflow-hidden">
                                 {classroom.name}
                                 <br>
-                                <span class="text-gray-500 font-normal text-sm relative -top-1.5">
+                                <span class="text-gray-500 font-normal text-sm w-56 relative -top-1.5 text-ellipsis text-nowrap overflow-hidden">
                                     {classroom.section || "⠀"}
                                 </span>
                             </div>
@@ -414,13 +430,13 @@
                     {#if classroom.owner.id !== current_user.id}
                     <a href="/classrooms/{classroom.id}" class="h-fit cursor-pointer">
                         <div class="h-12 mt-2 mb-2 mr-3 rounded-r-full hover:bg-gray-100">
-                            <div style="background-color: {classroom.theme_color};" class="h-8 w-8 relative -top-3 left-3 text-lg font-semibold text-white rounded-full inline-flex items-center justify-center">
+                            <div style="background-color: {classroom.theme_color};" class="h-8 w-8 relative -top-[1.125rem] left-3 text-lg font-semibold text-white rounded-full inline-flex items-center justify-center">
                                 {classroom.name[0].toUpperCase()}
                             </div>
-                            <div class="relative {classroom.section ? "top-0.5" : "top-2.5"} ml-6 font-medium inline-block text-gray-600">
+                            <div class="relative {classroom.section ? "top-0.5" : "top-2.5"} ml-6 w-56 font-medium inline-block text-gray-600 text-ellipsis text-nowrap overflow-hidden">
                                 {classroom.name}
                                 <br>
-                                <span class="text-gray-500 font-normal text-sm relative -top-1.5">
+                                <span class="text-gray-500 font-normal text-sm w-56 relative -top-1.5 text-ellipsis text-nowrap overflow-hidden">
                                     {classroom.section || "⠀"}
                                 </span>
                             </div>
@@ -436,9 +452,9 @@
                 {#each classrooms as classroom (classroom.id)}
                     <a href="/classrooms/{classroom.id}" class="w-80 h-72 bg-white mt-6 ml-6 rounded-lg border border-solid border-gray-300 cursor-pointer hover:drop-shadow-xl">
                         <div style="background-image: url({api_url}/{classroom.banner_path}); background-repeat: no-repeat; background-size: 25rem 6.5rem" class="w-[19.9rem] bg-no-repeat px-4 py-3 rounded-t-lg">
-                            <h1 class="text-2xl font-medium text-white">{classroom.name}</h1>
-                            <p class="text-white text-sm">{classroom.section || "⠀"}</p>
-                            <p class="text-white mt-1">{classroom.owner.username}</p>
+                            <h1 class="text-2xl font-medium text-white text-ellipsis text-nowrap overflow-hidden">{classroom.name}</h1>
+                            <p class="text-white text-sm text-ellipsis text-nowrap overflow-hidden">{classroom.section || "⠀"}</p>
+                            <p class="text-white mt-1 text-ellipsis text-nowrap overflow-hidden">{classroom.owner.username}</p>
                             <img src="{api_url}/users/{classroom.owner.id}/avatar/data" alt="Avatar" class="w-20 h-20 relative -top-7 float-right rounded-full">
                         </div>
                     </a>

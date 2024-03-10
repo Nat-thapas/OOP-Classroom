@@ -199,6 +199,7 @@ class Announcement(BaseItem):
     def to_dict(self) -> dict:
         return {
             "id": self._id,
+            "type": "Announcement",
             "created_at": self._created_at.isoformat(),
             "edited_at": self._edited_at.isoformat(),
             "attachments": [attachment.to_dict() for attachment in self._attachments],
@@ -227,6 +228,7 @@ class Material(TopicMixin, TitleMixin, DescriptionMixin, BaseItem):
     def to_dict(self) -> dict:
         return {
             "id": self._id,
+            "type": "Material",
             "created_at": self._created_at.isoformat(),
             "edited_at": self._edited_at.isoformat(),
             "attachments": [attachment.to_dict() for attachment in self._attachments],
@@ -269,6 +271,7 @@ class Assignment(
     def to_dict(self) -> dict:
         return {
             "id": self._id,
+            "type": "Assignment",
             "created_at": self._created_at.isoformat(),
             "edited_at": self._edited_at.isoformat(),
             "attachments": [attachment.to_dict() for attachment in self._attachments],
@@ -313,6 +316,7 @@ class Question(
     def to_dict(self) -> dict:
         return {
             "id": self._id,
+            "type": "Question",
             "created_at": self._created_at.isoformat(),
             "edited_at": self._edited_at.isoformat(),
             "attachments": [attachment.to_dict() for attachment in self._attachments],
@@ -360,6 +364,7 @@ class MultipleChoiceQuestion(Question):
     def to_dict(self) -> dict:
         return {
             "id": self._id,
+            "type": "MultipleChoiceQuestion",
             "created_at": self._created_at.isoformat(),
             "edited_at": self._edited_at.isoformat(),
             "attachments": [attachment.to_dict() for attachment in self._attachments],
