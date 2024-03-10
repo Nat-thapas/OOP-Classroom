@@ -140,7 +140,7 @@ class Classroom:
     @property
     def banner_path(self) -> str:
         return self.__banner_path
-    
+
     @property
     def theme_color(self) -> str:
         return self.__theme_color
@@ -181,7 +181,7 @@ class Classroom:
     ) -> dict:
         classroom_dict: dict = {
             "id": self.__id,
-            "owner_id": self.__owner.id,
+            "owner": self.__owner.to_dict(),
             "name": self.__name,
             "section": self.__section,
             "subject": self.__subject,

@@ -5,8 +5,8 @@
 	let password: string;
 
 	async function login() {
-		if (password.length < 8) {
-			alert('Password must be at least 8 characters long');
+		if (password.length < 8 || password.length > 64) {
+			alert('Password must be between 8 and 64 characters long');
 			return;
 		}
 		const response = await fetch(`${api_url}/auth/login`, {

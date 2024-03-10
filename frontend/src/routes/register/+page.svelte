@@ -6,12 +6,12 @@
 	let password: string;
 
 	async function register() {
-        if (username.length < 3) {
-            alert('Username must be at least 3 characters long');
+        if (username.length < 3 || username.length > 64) {
+            alert('Username must be between 3 and 64 characters long');
             return;
         }
-		if (password.length < 8) {
-			alert('Password must be at least 8 characters long');
+		if (password.length < 8 || password.length > 64) {
+			alert('Password must be between 8 and 64 characters long');
 			return;
 		}
 		const response = await fetch(`${api_url}/auth/register`, {

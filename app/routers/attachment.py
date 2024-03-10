@@ -26,7 +26,7 @@ async def upload_file(
     return attachment.to_dict()
 
 
-@router.get("/{attachment_id}", dependencies=[Depends(get_current_user)])
+@router.get("/{attachment_id}")
 async def get_file_info(attachment_id: str):
     attachment = controller.get_attachment_by_id(attachment_id)
     if attachment is None:
@@ -34,7 +34,7 @@ async def get_file_info(attachment_id: str):
     return attachment.to_dict()
 
 
-@router.get("/{attachment_id}/data", dependencies=[Depends(get_current_user)])
+@router.get("/{attachment_id}/data")
 async def get_file_data(attachment_id: str):
     attachment = controller.get_attachment_by_id(attachment_id)
     if attachment is None:

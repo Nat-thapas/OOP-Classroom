@@ -9,7 +9,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
 from .config.config import get_settings
-from .routers import attachment, auth, classroom, user
+from .routers import attachment, auth, classroom, tasks, user
 
 settings = get_settings()
 
@@ -51,6 +51,7 @@ app.include_router(auth.router)
 app.include_router(attachment.router)
 app.include_router(classroom.router)
 app.include_router(user.router)
+app.include_router(tasks.router)
 
 
 @app.get("/")

@@ -38,9 +38,15 @@ async def get_my_avatar_data(user: Annotated[User, Depends(get_current_user)]):
 async def update_me(
     body: UpdateUserModel, user: Annotated[User, Depends(get_current_user)]
 ):
-    if controller.get_user_by_email(body.email) is not None:
+    if (
+        controller.get_user_by_email(body.email) is not None
+        and controller.get_user_by_email(body.email) != user
+    ):
         raise HTTPException(status.HTTP_400_BAD_REQUEST, "Email already in use")
-    if controller.get_user_by_username(body.username) is not None:
+    if (
+        controller.get_user_by_username(body.username) is not None
+        and controller.get_user_by_username(body.username) != user
+    ):
         raise HTTPException(status.HTTP_400_BAD_REQUEST, "Username already in use")
     if not verify_password(user.hashed_password, body.old_password):
         raise HTTPException(status.HTTP_400_BAD_REQUEST, "Old password is incorrect")
@@ -56,11 +62,11 @@ async def get_user(user: Annotated[User, Depends(get_user_from_path)]):
     return user.to_dict()
 
 
-@router.get("/{user_id}/avatar", dependencies=[Depends(get_current_user)])
+@router.get("/{user_id}/avatar")
 async def get_user_avatar_info(user: Annotated[User, Depends(get_user_from_path)]):
     return user.avatar.to_dict()
 
 
-@router.get("/{user_id}/avatar/data", dependencies=[Depends(get_current_user)])
+@router.get("/{user_id}/avatar/data")
 async def get_user_avatar_data(user: Annotated[User, Depends(get_user_from_path)]):
     return Response(user.avatar.data.getvalue(), media_type=user.avatar.content_type)
