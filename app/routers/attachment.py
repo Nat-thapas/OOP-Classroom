@@ -39,4 +39,8 @@ async def get_file_data(attachment_id: str):
     attachment = controller.get_attachment_by_id(attachment_id)
     if attachment is None:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Attachment not found")
-    return Response(attachment.data.getvalue(), media_type=attachment.content_type)
+    return Response(
+        attachment.data.getvalue(),
+        media_type=attachment.content_type,
+        headers={"Content-Disposition": "inline", "filename": attachment.name},
+    )

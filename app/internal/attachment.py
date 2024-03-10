@@ -33,6 +33,10 @@ class Attachment:
         return self.__id
 
     @property
+    def name(self) -> str:
+        return self.__original_filename
+
+    @property
     def content_type(self) -> str:
         return self.__content_type
 
