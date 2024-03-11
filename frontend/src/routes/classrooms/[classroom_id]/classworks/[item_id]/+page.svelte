@@ -71,7 +71,6 @@
                     method: 'POST',
                     headers: {
                         'Authorization': `Bearer ${token}`,
-                        'Content-Type': 'multipart/form-data'
                     },
                     body: form_data
                 });
@@ -99,8 +98,12 @@
     let comment_text: string;
 
     async function add_class_comment() {
-        if (comment_text.length === 0) {
+        if (!comment_text) {
             alert('Comment cannot be empty');
+            return;
+        }
+        if (comment_text.length > 512) {
+            alert('Comment cannot be longer than 512 characters');
             return;
         }
         const response = await fetch(`${api_url}/classrooms/${classroom_id}/items/${item_id}/comments`, {

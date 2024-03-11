@@ -184,7 +184,7 @@
     let announcement_text: string;
 
     async function create_announcement() {
-        if (announcement_text.length === 0) {
+        if (!announcement_text) {
             alert("Announcement text cannot be empty");
             return;
         }
@@ -205,7 +205,6 @@
                     method: 'POST',
                     headers: {
                         'Authorization': `Bearer ${token}`,
-                        'Content-Type': 'multipart/form-data'
                     },
                     body: form_data
                 });
@@ -241,7 +240,7 @@
     let comment_text: string;
 
     async function add_class_comment(evnt: Event) {
-        if (comment_text.length === 0) {
+        if (!comment_text) {
             alert("Comment text cannot be empty");
             return;
         }
