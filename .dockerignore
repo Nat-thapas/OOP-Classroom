@@ -14,4 +14,8 @@ README.md
 node_modules
 build
 package
-**/.env
+.env
+.env.*
+*.ps1
+.VSCodeCounter
+__pycache__
