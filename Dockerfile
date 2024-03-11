@@ -24,5 +24,6 @@ EXPOSE 3000
 EXPOSE 8080
 
 COPY .docker-start.sh /start.sh
+RUN  chmod +x /start.sh
 
 CMD /start.sh
