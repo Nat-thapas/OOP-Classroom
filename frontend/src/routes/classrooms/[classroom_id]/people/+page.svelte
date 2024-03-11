@@ -50,6 +50,7 @@
         <a href="/classrooms/{classroom_id}/classworks" class="h-12 w-32 p-3.5 text-center text-gray-600 font-semibold">Classwork</a>
         <a href="/classrooms/{classroom_id}/people" class="h-12 w-32 p-3.5 text-center text-gray-600 font-semibold border-b-4 border-blue-600">People</a>
     </nav>
+    <hr>
     {#await current_classroom then current_classroom}
         <div class="w-[48rem] mx-auto mt-8">
             <h1 style="color: {current_classroom.theme_color}; border-color: {current_classroom.theme_color};" class="text-3xl w-[48rem] border-b pb-4 mb-4">Teacher</h1>

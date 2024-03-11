@@ -33,17 +33,6 @@
         return response_data;
     }
 
-    async function get_current_topics(): Promise<any> {
-        const response = await fetch(`${api_url}/classrooms/${classroom_id}/topics`, {
-            method: 'GET',
-            headers: {
-                'Authorization': `Bearer ${token}`
-            }
-        });
-        const response_data = await response.json();
-        return response_data;
-    }
-
     let current_user: Promise<any> = get_current_user();
     let current_classroom: Promise<any> = get_current_classroom();
 
@@ -222,8 +211,6 @@
             >
                 <option value="Material">Material</option>
                 <option value="Assignment">Assignment</option>
-                <option value="Question">Question</option>
-                <option value="MultipleChoiceQuestion">Multiple Choice Question</option>
             </select>
             <select
                 class="w-[32rem] h-12 m-auto mt-4 mb-3 block pl-5 rounded-t-md border-b bg-gray-100 border-solid border-black focus:border-b-2 focus:border-blue-700 outline-none placeholder:text-gray-500"
@@ -281,7 +268,7 @@
                     class="w-[32rem] h-12 m-auto mt-4 block p-5 rounded-t-md border-b bg-gray-100 border-solid border-black focus:border-b-2 focus:border-blue-700 outline-none placeholder:text-gray-500"
                     required
                     bind:value={item_option_2}
-                    placeholder="Option 2"
+                    placeholder="Option 2 (required)"
                 />
                 <input
                     type="text"

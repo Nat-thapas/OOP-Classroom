@@ -44,9 +44,21 @@
         return response_data;
     }
 
+    async function get_current_tasks(): Promise<any> {
+        const response = await fetch(`${api_url}/tasks/@me?task_type=ToDo`, {
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+        const response_data = await response.json();
+        return response_data;
+    }
+
     let current_user: Promise<any> = get_current_user();
     let current_classroom: Promise<any> = get_current_classroom();
     let banners_path: Promise<any> = get_banners_path();
+    let current_tasks: Promise<any> = get_current_tasks();
 
     let is_edit_classroom_menu_open: boolean = false;
     let is_customize_classroom_menu_open: boolean = false;
@@ -245,6 +257,44 @@
         alert("Announcement created successfully")
     }
 
+    let comment_text: string;
+
+    async function add_class_comment(evnt: Event) {
+        console.log(evnt.target)
+        const response = await fetch(`${api_url}/classrooms/${classroom_id}/items/${evnt.target.dataset.announcementid}/comments`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                comment: comment_text
+            })
+        });
+        const response_data = await response.json();
+        current_classroom = get_current_classroom();
+        comment_text = "";
+    }
+
+    async function delete_classroom() {
+        let user_response = prompt("Are you sure you want to delete this classroom? Type 'DELETE' to confirm");
+        if (!user_response) {
+            return;
+        }
+        user_response = user_response.trim();
+        user_response = user_response.toUpperCase();
+        if (user_response !== "DELETE") {
+            return;
+        }
+        const response = await fetch(`${api_url}/classrooms/${classroom_id}`, {
+            method: 'DELETE',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+            }
+        });
+        window.location.href = "/";
+    }
+
     onMount(async () => {
         const classroom = await current_classroom;
         document.title = "Classroom - " + classroom.name;
@@ -301,10 +351,26 @@
                             Customize
                         </div>
                     </button>
+                    <button on:click={delete_classroom} style="background-color: {current_classroom.theme_color};" class="p-2 w-44 mt-4 rounded-lg text-white text-xl">
+                        <div class="flex items-center ml-7">
+                            <span class="material-symbols-outlined mr-3">
+                                delete
+                            </span>
+                            Delete
+                        </div>
+                    </button>
                 {:else}
                 <div class="p-4 w-44 rounded-lg border border-solid border-gray-300">
                     <h3 class="font-medium mb-4">Upcoming</h3>
-                    <p class="text-gray-500">No work due soon, probably</p>
+                    {#await current_tasks then current_tasks}
+                        {#if current_tasks.length === 0}
+                            <p class="text-gray-600">No upcoming tasks</p>
+                        {:else}
+                            {#each current_tasks as task}
+                                <a href="/classrooms/{classroom_id}/classworks/{task.item_id}" class="underline text-gray-600 block mb-2">{task.title}</a>
+                            {/each}
+                        {/if}
+                    {/await}
                 </div>
                 {/if}
             </div>
@@ -331,6 +397,34 @@
                                     <a href={api_url + "/attachments/" + attachment.id + "/data"} target="_blank" class="text-blue-600 underline m-4 block">{attachment.name}</a>
                                 {/each}
                             {/if}
+                            {#if item.comments && item.comments.length > 0}
+                                <h4 class="text-xl border-t pt-4 border-gray-300">Class comments</h4>
+                                {#each item.comments as comment}
+                                    <div class="flex items-center m-4">
+                                        <img src="{api_url}/users/{comment.owner.id}/avatar/data" alt="Profile" class="w-8 h-8 rounded-full " />
+                                        <div>
+                                            <div class="flex items-center">
+                                                <p class="text-gray-600 ml-4 font-medium">{comment.owner.username}</p>
+                                                <p class="ml-4 text-gray-500">{(new Date(comment.created_at)).toDateString()}</p>
+                                            </div>
+                                            <p class="text-gray-600 ml-4 block">{comment.text}</p>
+                                        </div>
+                                    </div>
+                                {/each}
+                            {/if}
+                            {#await current_user then current_user}
+                                <div class="w-[42rem] pt-4 border-t border-gray-300">
+                                    <div class="flex items-center">
+                                        <img src="{api_url}/users/{current_user.id}/avatar/data" alt="Profile" class="w-8 h-8 rounded-full " />
+                                        <input bind:value={comment_text} type="text" class="w-[40rem] border border-gray-300 rounded-lg p-2.5 ml-4" placeholder="Add class comment" />
+                                        <button on:click={add_class_comment} data-announcementid={item.id} class="relative -left-8 top-1">
+                                            <span class="material-symbols-outlined text-gray-500" data-announcementid={item.id}>
+                                                send
+                                            </span>
+                                        </button>
+                                    </div>
+                                </div>
+                            {/await}
                         </div>
                     {:else}
                         <a href="/classrooms/{classroom_id}/classworks/{item.id}" class="w-[56rem] mx-auto">

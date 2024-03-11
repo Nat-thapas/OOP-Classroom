@@ -27,7 +27,7 @@ class UpdateClassroomModel(CreateClassroomModel):
         if value not in get_valid_banner_images():
             raise ValueError("Invalid banner path")
         return value
-    
+
     @validator("theme_color")
     @classmethod
     def validate_theme_color(cls, value: str) -> str:

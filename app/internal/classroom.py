@@ -196,16 +196,22 @@ class Classroom:
             classroom_dict["students"] = [
                 student.to_dict() for student in self.__students
             ]
-            classroom_dict["topics"] = [topic.to_dict() for topic in self.__topics]
+            topics = self.__topics.copy()
+            topics.reverse()
+            classroom_dict["topics"] = [topic.to_dict() for topic in topics]
             if filter_item_for_user and filter_item_for_user != self.__owner:
+                items = self.__items.copy()
+                items.reverse()
                 classroom_dict["items"] = [
                     item.to_dict()
-                    for item in self.__items
+                    for item in items
                     if item.assigned_to_students is None
                     or filter_item_for_user in item.assigned_to_students
                 ]
             else:
-                classroom_dict["items"] = [item.to_dict() for item in self.__items]
+                items = self.__items.copy()
+                items.reverse()
+                classroom_dict["items"] = [item.to_dict() for item in items]
 
         return classroom_dict
 

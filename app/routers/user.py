@@ -24,14 +24,14 @@ async def get_me(user: Annotated[User, Depends(get_current_user)]):
     return user.to_dict()
 
 
-@router.get("/@me/avatar")
-async def get_my_avatar_info(user: Annotated[User, Depends(get_current_user)]):
-    return user.avatar.to_dict()
+# @router.get("/@me/avatar")
+# async def get_my_avatar_info(user: Annotated[User, Depends(get_current_user)]):
+#     return user.avatar.to_dict()
 
 
-@router.get("/@me/avatar/data")
-async def get_my_avatar_data(user: Annotated[User, Depends(get_current_user)]):
-    return Response(user.avatar.data.getvalue(), media_type=user.avatar.content_type)
+# @router.get("/@me/avatar/data")
+# async def get_my_avatar_data(user: Annotated[User, Depends(get_current_user)]):
+#     return Response(user.avatar.data.getvalue(), media_type=user.avatar.content_type)
 
 
 @router.patch("/@me")
