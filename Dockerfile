@@ -18,6 +18,7 @@ WORKDIR /frontend
 COPY --from=builder /frontend/build build/
 COPY --from=builder /frontend/node_modules node_modules/
 COPY frontend/package.json .
+COPY frontend/.env .
 ENV NODE_ENV=production
 
 EXPOSE 3000
