@@ -66,6 +66,7 @@ def get_banner_images_cached():
 @router.get("")
 async def get_classrooms(user: Annotated[User, Depends(get_current_user)]):
     classrooms = controller.get_classrooms_for_user(user)
+    classrooms.reverse()
     return [classroom.to_dict(filter_item_for_user=user) for classroom in classrooms]
 
 
@@ -146,6 +147,8 @@ async def delete_classroom(
 async def get_classroom_topics(
     classroom: Annotated[Classroom, Depends(get_classroom_from_path)],
 ):
+    topics = classroom.topics
+    topics.reverse()
     return [topic.to_dict() for topic in classroom.topics]
 
 
@@ -167,9 +170,11 @@ async def get_classroom_items(
     user: Annotated[User, Depends(get_current_user)],
     classroom: Annotated[Classroom, Depends(get_classroom_from_path)],
 ):
+    items = classroom.items
+    items.reverse()
     return [
         item.to_dict()
-        for item in classroom.items
+        for item in items
         if item.assigned_to_students is None
         or user in item.assigned_to_students
         or user == classroom.owner
@@ -391,7 +396,9 @@ async def update_classroom_item(
             item.choices = choices
             return item.to_dict()
 
-        raise HTTPException(status.HTTP_500_INTERNAL_SERVER_ERROR, "Unable to get item type")
+        raise HTTPException(
+            status.HTTP_500_INTERNAL_SERVER_ERROR, "Unable to get item type"
+        )
 
     except ValueError as exp:
         raise HTTPException(status.HTTP_400_BAD_REQUEST, "Invalid data") from exp

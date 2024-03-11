@@ -40,6 +40,7 @@
 
 <div class="w-[64rem] mx-auto">
     <nav class="flex">
+        <a href="/" class="h-12 w-32 p-3.5 text-center text-gray-600 font-semibold">Home</a>
         <a href="/classrooms/{classroom_id}" class="h-12 w-32 p-3.5 text-center text-gray-600 font-semibold border-b-4 border-blue-600">Stream</a>
         <a href="/classrooms/{classroom_id}/classworks" class="h-12 w-32 p-3.5 text-center text-gray-600 font-semibold">Classwork</a>
         <a href="/classrooms/{classroom_id}/people" class="h-12 w-32 p-3.5 text-center text-gray-600 font-semibold">People</a>
@@ -78,7 +79,7 @@
                                 {#if item.type === "Material"}
                                 <div style="background-color: {current_classroom.theme_color};" class="h-10 w-10 relative left-2 text-lg font-semibold text-white rounded-full inline-flex items-center justify-center">
                                     <span class="material-symbols-outlined text-white">
-                                        description
+                                        book
                                     </span>
                                 </div>
                                 {:else if item.type === "Assignment"}

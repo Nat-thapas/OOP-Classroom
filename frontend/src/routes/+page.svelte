@@ -131,8 +131,10 @@
             alert("Failed edit user");
             return;
         }
+        is_edit_user_menu_open = false;
         alert("User edited successfully");
-        window.location.reload();
+        current_user = get_current_user();
+        classrooms = get_classrooms();
     }
 
     async function join_classroom() {

@@ -46,7 +46,6 @@
 
     let current_user: Promise<any> = get_current_user();
     let current_classroom: Promise<any> = get_current_classroom();
-    let current_topics: Promise<any> = get_current_topics();
 
     let is_create_classwork_menu_open: boolean = false;
     let is_create_topic_menu_open: boolean = false;
@@ -79,7 +78,9 @@
             })
         });
         const response_data = await response.json();
-        window.location.reload();
+        is_create_topic_menu_open = false;
+        current_user = get_current_user();
+        current_classroom = get_current_classroom();
     }
 
     let item_type: any;
@@ -153,7 +154,8 @@
                 choices: item_choices.length ? [item_option_1, item_option_2, item_option_3, item_option_4].filter(Boolean) : null,
             })
         });
-        window.location.reload();
+        is_create_classwork_menu_open = false;
+        current_classroom = get_current_classroom();
     }
 </script>
 
@@ -163,6 +165,7 @@
 
 <div class="w-[64rem] mx-auto">
     <nav class="flex">
+        <a href="/" class="h-12 w-32 p-3.5 text-center text-gray-600 font-semibold">Home</a>
         <a href="/classrooms/{classroom_id}" class="h-12 w-32 p-3.5 text-center text-gray-600 font-semibold">Stream</a>
         <a href="/classrooms/{classroom_id}/classworks" class="h-12 w-32 p-3.5 text-center text-gray-600 font-semibold border-b-4 border-blue-600">Classwork</a>
         <a href="/classrooms/{classroom_id}/people" class="h-12 w-32 p-3.5 text-center text-gray-600 font-semibold">People</a>
@@ -226,9 +229,9 @@
                 class="w-[32rem] h-12 m-auto mt-4 mb-3 block pl-5 rounded-t-md border-b bg-gray-100 border-solid border-black focus:border-b-2 focus:border-blue-700 outline-none placeholder:text-gray-500"
                 bind:value={item_topic}
             >
-                {#await current_topics then topics}
+                {#await current_classroom then current_classroom}
                     <option value="null">No topic</option>
-                    {#each topics as topic}
+                    {#each current_classroom.topics as topic}
                         <option value={topic.id}>{topic.name}</option>
                     {/each}
                 {/await}
@@ -237,7 +240,7 @@
                 Attachments:
             </label>
             <br>
-            <input bind:files={item_attachments} id="many" multiple type="file" class="ml-4 mt-1 file:bg-gray-200 file:hover:bg-gray-300 file:mr-2.5 file:border-none file:rounded-lg file:px-2.5 file:py-1" />
+            <input bind:files={item_attachments} id="many" multiple type="file" class="ml-4 mt-1 file:cursor-pointer file:bg-gray-200 file:hover:bg-gray-300 file:mr-2.5 file:border-none file:rounded-lg file:px-2.5 file:py-1" />
             <input
                 type="text"
                 class="w-[32rem] h-12 m-auto mt-4 block p-5 rounded-t-md border-b bg-gray-100 border-solid border-black focus:border-b-2 focus:border-blue-700 outline-none placeholder:text-gray-500"
@@ -276,6 +279,7 @@
                 <input
                     type="text"
                     class="w-[32rem] h-12 m-auto mt-4 block p-5 rounded-t-md border-b bg-gray-100 border-solid border-black focus:border-b-2 focus:border-blue-700 outline-none placeholder:text-gray-500"
+                    required
                     bind:value={item_option_2}
                     placeholder="Option 2"
                 />
@@ -307,7 +311,7 @@
 <div transition:fade={{ duration: 150, easing: quadOut }} class="fixed top-0 left-0 bottom-0 right-0 bg-black opacity-50 z-40"></div>
     <div transition:scale={{ duration: 150, easing: quadOut, start: 0.75 }} class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[36rem] h-fit z-50 bg-white rounded-xl p-5">
         <h1 class="text-lg font-medium text-gray-600 inline-block">Create classwork</h1>
-        <button class="inline-block cursor-pointer float-right" on:click={() => {is_create_classwork_menu_open = false;}}>
+        <button class="inline-block cursor-pointer float-right" on:click={() => {is_create_topic_menu_open = false;}}>
             <span class="material-symbols-outlined">
                 close
             </span>
@@ -332,16 +336,47 @@
     </div>
 {/if}
 {#await current_classroom then current_classroom}
-    {#each current_classroom.topics as topic}
-        <h1 style="color: {current_classroom.theme_color}; border-color: {current_classroom.theme_color}" class="text-2xl font-medium w-[56rem] mx-auto mt-8 pl-8 pb-4 border-b">{topic.name}</h1>
+    <div class="relative -top-12">
+        {#each current_classroom.topics as topic}
+            <h1 style="color: {current_classroom.theme_color}; border-color: {current_classroom.theme_color}" class="text-2xl font-medium w-[56rem] mx-auto mt-16 pl-8 pb-4 border-b">{topic.name}</h1>
+            {#each current_classroom.items as item}
+                {#if item.topic && item.topic.id === topic.id}
+                    <a href="/classrooms/{classroom_id}/classworks/{item.id}" class="w-[56rem] mx-auto">
+                        <div class="w-[56rem] mx-auto bg-white rounded-lg p-4 border-b border-solid border-gray-300 cursor-pointer hover:drop-shadow-xl">
+                            {#if item.type === "Material"}
+                            <div style="background-color: {current_classroom.theme_color};" class="h-10 w-10 relative top-1 left-4 text-lg font-semibold text-white rounded-full inline-flex items-center justify-center">
+                                <span class="material-symbols-outlined text-white">
+                                    book
+                                </span>
+                            </div>
+                            {:else if item.type === "Assignment"}
+                            <div style="background-color: {current_classroom.theme_color};" class="h-10 w-10 relative top-1 left-4 text-lg font-semibold text-white rounded-full inline-flex items-center justify-center">
+                                <span class="material-symbols-outlined text-white">
+                                    assignment
+                                </span>
+                            </div>
+                            {:else}
+                            <div style="background-color: {current_classroom.theme_color};" class="h-10 w-10 relative top-1 left-4 text-lg font-semibold text-white rounded-full inline-flex items-center justify-center">
+                                <span class="material-symbols-outlined text-white">
+                                    live_help
+                                </span>
+                            </div>
+                            {/if}
+                            <h1 class="text-lg font-medium ml-7 inline-block text-gray-600">{item.title}</h1>
+                        </div>
+                    </a>
+                {/if}
+            {/each}
+        {/each}
+        <h1 style="color: {current_classroom.theme_color}; border-color: {current_classroom.theme_color}" class="text-2xl font-medium w-[56rem] mx-auto mt-16 pl-8 pb-4 border-b">No topic</h1>
         {#each current_classroom.items as item}
-            {#if item.topic && item.topic.id === topic.id}
+            {#if !item.topic}
                 <a href="/classrooms/{classroom_id}/classworks/{item.id}" class="w-[56rem] mx-auto">
                     <div class="w-[56rem] mx-auto bg-white rounded-lg p-4 border-b border-solid border-gray-300 cursor-pointer hover:drop-shadow-xl">
                         {#if item.type === "Material"}
                         <div style="background-color: {current_classroom.theme_color};" class="h-10 w-10 relative top-1 left-4 text-lg font-semibold text-white rounded-full inline-flex items-center justify-center">
                             <span class="material-symbols-outlined text-white">
-                                description
+                                book
                             </span>
                         </div>
                         {:else if item.type === "Assignment"}
@@ -362,34 +397,5 @@
                 </a>
             {/if}
         {/each}
-    {/each}
-    <h1 style="color: {current_classroom.theme_color}; border-color: {current_classroom.theme_color}" class="text-2xl font-medium w-[56rem] mx-auto mt-8 pl-8 pb-4 border-b">No topic</h1>
-    {#each current_classroom.items as item}
-        {#if !item.topic}
-            <a href="/classrooms/{classroom_id}/classworks/{item.id}" class="w-[56rem] mx-auto">
-                <div class="w-[56rem] mx-auto bg-white rounded-lg p-4 border-b border-solid border-gray-300 cursor-pointer hover:drop-shadow-xl">
-                    {#if item.type === "Material"}
-                    <div style="background-color: {current_classroom.theme_color};" class="h-10 w-10 relative top-1 left-4 text-lg font-semibold text-white rounded-full inline-flex items-center justify-center">
-                        <span class="material-symbols-outlined text-white">
-                            description
-                        </span>
-                    </div>
-                    {:else if item.type === "Assignment"}
-                    <div style="background-color: {current_classroom.theme_color};" class="h-10 w-10 relative top-1 left-4 text-lg font-semibold text-white rounded-full inline-flex items-center justify-center">
-                        <span class="material-symbols-outlined text-white">
-                            assignment
-                        </span>
-                    </div>
-                    {:else}
-                    <div style="background-color: {current_classroom.theme_color};" class="h-10 w-10 relative top-1 left-4 text-lg font-semibold text-white rounded-full inline-flex items-center justify-center">
-                        <span class="material-symbols-outlined text-white">
-                            live_help
-                        </span>
-                    </div>
-                    {/if}
-                    <h1 class="text-lg font-medium ml-7 inline-block text-gray-600">{item.title}</h1>
-                </div>
-            </a>
-        {/if}
-    {/each}
+    </div>
 {/await}

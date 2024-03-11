@@ -151,6 +151,8 @@ class SubmissionsMixin:
     def create_submission(
         self, user: User, attachments: list[Attachment]
     ) -> Submission:
+        if previous_submission := self.get_submission_by_owner(user):
+            self.delete_submission(previous_submission)
         submission = Submission(user, attachments)
         self._submissions.append(submission)
         return submission
