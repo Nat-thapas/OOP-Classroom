@@ -145,7 +145,7 @@
                     {/if}
                 </div>
                 <div class="flex w-[64rem] ml-16">
-                    <div class="mt-4 w-[32rem]">
+                    <div class="mt-4 w-[28rem]">
                         <p class="m-4 relative text-gray-600">{current_item.description || "No description"}</p>
                         {#each current_item.attachments as attachment}
                             <a href={api_url + "/attachments/" + attachment.id + "/data"} target="_blank" class="text-blue-600 underline m-4 block relative">{attachment.name}</a>
@@ -153,19 +153,22 @@
                     </div>
                     {#await current_user then current_user}
                         {#if current_item.type === "Assignment" && current_user.id !== current_classroom.owner.id}
-                            <div class="w-48 m-4 rounded-lg border border-gray-300 bg-white drop-shadow-lg p-4">
+                            <div class="w-56 m-4 rounded-lg border border-gray-300 bg-white drop-shadow-lg p-4">
                                 <h3 class="text-2xl text-gray-700">Your work</h3>
                                 {#await current_submission then current_submission}
-                                    {#if current_submission}
+                                    {#if current_submission.point}
+                                        <p>Graded: {current_submission.point}/{current_item.point || 0}</p>
+                                    {/if}
+                                    {#if current_submission.attachments && current_submission.attachments.length > 0}
                                         {#each current_submission.attachments as attachment}
                                             <a href={api_url + "/attachments/" + attachment.id + "/data"} target="_blank" class="text-blue-600 underline m-4 block relative">{attachment.name}</a>
                                         {/each}
                                     {/if}
-                                        <input bind:files={submission_attachments} id="many" multiple type="file" class="mt-4 ml-4 file:cursor-pointer file:bg-gray-200 file:hover:bg-gray-300 file:mr-2.5 file:mb-2 file:border-none file:rounded-lg file:px-2.5 file:py-1 file:block" />
-                                    {#if current_submission}
-                                        <button on:click={submit_assignment} style="background-color: {current_classroom.theme_color};" class="px-4 py-2 rounded-lg text-white w-36 ml-2 mt-4">Resubmit</button>
+                                    <input bind:files={submission_attachments} id="many" multiple type="file" class="mt-4 ml-10 file:cursor-pointer file:bg-gray-200 file:hover:bg-gray-300 file:mr-2.5 file:mb-2 file:border-none file:rounded-lg file:px-2.5 file:py-1 file:block" />
+                                    {#if current_submission.attachments && current_submission.attachments.length > 0}
+                                        <button on:click={submit_assignment} style="background-color: {current_classroom.theme_color};" class="px-4 py-2 rounded-lg text-white w-44 ml-2 mt-4">Resubmit</button>
                                     {:else}
-                                        <button on:click={submit_assignment} style="background-color: {current_classroom.theme_color};" class="px-4 py-2 rounded-lg text-white w-36 ml-2 mt-4">{submission_attachments && submission_attachments.length > 0 ? "Submit" : "Mark as done"}</button>
+                                        <button on:click={submit_assignment} style="background-color: {current_classroom.theme_color};" class="px-4 py-2 rounded-lg text-white w-44 ml-2 mt-4">{submission_attachments && submission_attachments.length > 0 ? "Submit" : "Mark as done"}</button>
                                     {/if}
                                 {/await}
                             </div>
