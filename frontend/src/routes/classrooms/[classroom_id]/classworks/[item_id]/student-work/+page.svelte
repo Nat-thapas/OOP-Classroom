@@ -114,6 +114,7 @@
         <a href="/classrooms/{classroom_id}/classworks/{item_id}" class="h-12 w-32 p-3.5 text-center text-gray-600 font-semibold">Instructions</a>
         <a href="/classrooms/{classroom_id}/classworks/{item_id}/student-work" class="h-12 w-32 p-3.5 text-center text-gray-600 font-semibold border-b-4 border-blue-600">Student work</a>
     </nav>
+    <hr>
     <div class="w=[52rem] mx-8 mt-8">
         {#await current_item then current_item}
             {#await current_submissions then current_submissions}

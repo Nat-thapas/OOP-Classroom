@@ -109,6 +109,7 @@
             <a href="/classrooms/{classroom_id}/classworks/{item_id}" class="h-12 w-32 p-3.5 text-center text-gray-600 font-semibold border-b-4 border-blue-600">Instructions</a>
             <a href="/classrooms/{classroom_id}/classworks/{item_id}/student-work" class="h-12 w-32 p-3.5 text-center text-gray-600 font-semibold">Student work</a>
         </nav>
+        <hr>
     {/if}
     {/await}
     {/await}
