@@ -321,7 +321,7 @@
                 {/await}
                 {#each current_classroom.items as item (item.id)}
                     {#if item.type === "Announcement"}
-                        <div class="w-[44rem] h-fit mx-auto mb-6 bg-white rounded-lg p-4 border border-solid border-gray-300 cursor-pointer hover:drop-shadow-xl">
+                        <div class="w-[44rem] h-fit mx-auto mb-6 bg-white rounded-lg p-4 border border-solid border-gray-300 hover:drop-shadow-xl">
                             <img src="{api_url}/users/{current_classroom.owner.id}/avatar/data" alt="Avatar" class="w-10 h-10 relative left-2 rounded-full">
                             <h1 class="text-base font-medium relative -top-10 left-16 text-gray-600">{current_classroom.owner.username}</h1>
                             <h2 class="text-sm relative -top-10 left-16 text-gray-600">Posted: {(new Date(item.created_at)).toDateString()}</h2>
