@@ -327,7 +327,40 @@
         {#each current_classroom.topics as topic}
             <h1 style="color: {current_classroom.theme_color}; border-color: {current_classroom.theme_color}" class="text-2xl font-medium w-[56rem] mx-auto mt-16 pl-8 pb-4 border-b">{topic.name}</h1>
             {#each current_classroom.items as item}
-                {#if item.topic && item.topic.id === topic.id}
+                {#if item.type !== "Announcement"}
+                    {#if item.topic && item.topic.id === topic.id}
+                        <a href="/classrooms/{classroom_id}/classworks/{item.id}" class="w-[56rem] mx-auto">
+                            <div class="w-[56rem] mx-auto bg-white rounded-lg p-4 border-b border-solid border-gray-300 cursor-pointer hover:drop-shadow-xl">
+                                {#if item.type === "Material"}
+                                <div style="background-color: {current_classroom.theme_color};" class="h-10 w-10 relative top-1 left-4 text-lg font-semibold text-white rounded-full inline-flex items-center justify-center">
+                                    <span class="material-symbols-outlined text-white">
+                                        book
+                                    </span>
+                                </div>
+                                {:else if item.type === "Assignment"}
+                                <div style="background-color: {current_classroom.theme_color};" class="h-10 w-10 relative top-1 left-4 text-lg font-semibold text-white rounded-full inline-flex items-center justify-center">
+                                    <span class="material-symbols-outlined text-white">
+                                        assignment
+                                    </span>
+                                </div>
+                                {:else}
+                                <div style="background-color: {current_classroom.theme_color};" class="h-10 w-10 relative top-1 left-4 text-lg font-semibold text-white rounded-full inline-flex items-center justify-center">
+                                    <span class="material-symbols-outlined text-white">
+                                        live_help
+                                    </span>
+                                </div>
+                                {/if}
+                                <h1 class="text-lg font-medium ml-7 inline-block text-gray-600">{item.title}</h1>
+                            </div>
+                        </a>
+                    {/if}
+                {/if}
+            {/each}
+        {/each}
+        <h1 style="color: {current_classroom.theme_color}; border-color: {current_classroom.theme_color}" class="text-2xl font-medium w-[56rem] mx-auto mt-16 pl-8 pb-4 border-b">No topic</h1>
+        {#each current_classroom.items as item}
+            {#if item.type !== "Announcement"}
+                {#if !item.topic}
                     <a href="/classrooms/{classroom_id}/classworks/{item.id}" class="w-[56rem] mx-auto">
                         <div class="w-[56rem] mx-auto bg-white rounded-lg p-4 border-b border-solid border-gray-300 cursor-pointer hover:drop-shadow-xl">
                             {#if item.type === "Material"}
@@ -353,35 +386,6 @@
                         </div>
                     </a>
                 {/if}
-            {/each}
-        {/each}
-        <h1 style="color: {current_classroom.theme_color}; border-color: {current_classroom.theme_color}" class="text-2xl font-medium w-[56rem] mx-auto mt-16 pl-8 pb-4 border-b">No topic</h1>
-        {#each current_classroom.items as item}
-            {#if !item.topic}
-                <a href="/classrooms/{classroom_id}/classworks/{item.id}" class="w-[56rem] mx-auto">
-                    <div class="w-[56rem] mx-auto bg-white rounded-lg p-4 border-b border-solid border-gray-300 cursor-pointer hover:drop-shadow-xl">
-                        {#if item.type === "Material"}
-                        <div style="background-color: {current_classroom.theme_color};" class="h-10 w-10 relative top-1 left-4 text-lg font-semibold text-white rounded-full inline-flex items-center justify-center">
-                            <span class="material-symbols-outlined text-white">
-                                book
-                            </span>
-                        </div>
-                        {:else if item.type === "Assignment"}
-                        <div style="background-color: {current_classroom.theme_color};" class="h-10 w-10 relative top-1 left-4 text-lg font-semibold text-white rounded-full inline-flex items-center justify-center">
-                            <span class="material-symbols-outlined text-white">
-                                assignment
-                            </span>
-                        </div>
-                        {:else}
-                        <div style="background-color: {current_classroom.theme_color};" class="h-10 w-10 relative top-1 left-4 text-lg font-semibold text-white rounded-full inline-flex items-center justify-center">
-                            <span class="material-symbols-outlined text-white">
-                                live_help
-                            </span>
-                        </div>
-                        {/if}
-                        <h1 class="text-lg font-medium ml-7 inline-block text-gray-600">{item.title}</h1>
-                    </div>
-                </a>
             {/if}
         {/each}
     </div>

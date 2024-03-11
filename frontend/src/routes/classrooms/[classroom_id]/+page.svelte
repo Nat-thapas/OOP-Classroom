@@ -118,7 +118,6 @@
         const response_data = await response.json();
         current_classroom = get_current_classroom();
         is_edit_classroom_menu_open = false;
-        alert("Classsroom edited successfully");
     }
 
     async function customize_classroom() {
@@ -140,7 +139,6 @@
         const response_data = await response.json();
         current_classroom = get_current_classroom();
         is_edit_classroom_menu_open = false;
-        alert("Classsroom customized successfully");
         const classroom = await current_classroom;
         document.title = "Classroom - " + classroom.name;
         edit_classroom_name = classroom.name;
@@ -254,7 +252,6 @@
         const response_data = await response.json();
         current_classroom = get_current_classroom();
         announcement_text = "";
-        alert("Announcement created successfully")
     }
 
     let comment_text: string;
