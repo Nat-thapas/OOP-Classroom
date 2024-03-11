@@ -120,35 +120,6 @@
         is_edit_classroom_menu_open = false;
     }
 
-    async function customize_classroom() {
-        const response = await fetch(`${api_url}/classrooms/${classroom_id}`, {
-            method: 'PATCH',
-            headers: {
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                name: edit_classroom_name,
-                section: edit_classroom_section || null,
-                subject: edit_classroom_subject || null,
-                room: edit_classroom_room || null,
-                banner_path: edit_classroom_banner_path,
-                theme_color: edit_classroom_theme_color,
-            })
-        });
-        const response_data = await response.json();
-        current_classroom = get_current_classroom();
-        is_edit_classroom_menu_open = false;
-        const classroom = await current_classroom;
-        document.title = "Classroom - " + classroom.name;
-        edit_classroom_name = classroom.name;
-        edit_classroom_section = classroom.section;
-        edit_classroom_subject = classroom.subject;
-        edit_classroom_room = classroom.room;
-        edit_classroom_banner_path = classroom.banner_path;
-        edit_classroom_theme_color = classroom.theme_color;
-    }
-
     async function set_classroom_theme_color(evnt: Event) {
         const response = await fetch(`${api_url}/classrooms/${classroom_id}`, {
             method: 'PATCH',
@@ -213,6 +184,18 @@
     let announcement_text: string;
 
     async function create_announcement() {
+        if (announcement_text.length === 0) {
+            alert("Announcement text cannot be empty");
+            return;
+        }
+        if (announcement_text.length > 2048) {
+            alert("Announcement text must be less than 2048 characters long");
+            return;
+        }
+        if (announcement_attachments && announcement_attachments.length > 8) {
+            alert("You can only attach up to 8 files to an announcement");
+            return;
+        }
         let announcement_attachments_id = [];
         if (announcement_attachments) {
             for (const announcement_attachment of announcement_attachments) {
@@ -222,6 +205,7 @@
                     method: 'POST',
                     headers: {
                         'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'multipart/form-data'
                     },
                     body: form_data
                 });
@@ -257,7 +241,14 @@
     let comment_text: string;
 
     async function add_class_comment(evnt: Event) {
-        console.log(evnt.target)
+        if (comment_text.length === 0) {
+            alert("Comment text cannot be empty");
+            return;
+        }
+        if (comment_text.length > 512) {
+            alert("Comment text must be less than 512 characters long");
+            return;
+        }
         const response = await fetch(`${api_url}/classrooms/${classroom_id}/items/${evnt.target.dataset.announcementid}/comments`, {
             method: 'POST',
             headers: {

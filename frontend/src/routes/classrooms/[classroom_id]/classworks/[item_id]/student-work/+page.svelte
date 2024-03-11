@@ -87,6 +87,7 @@
         for (let i = 0; i < submissions.length; i++) {
             const grade = grades[i];
             if (grade < 0) {
+                alert('Grade cannot be negative, skipping this submission');
                 continue;
             }
             const response = await fetch(`${api_url}/classrooms/${classroom_id}/items/${item_id}/submissions/${submissions[i].id}`, {
