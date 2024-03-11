@@ -199,6 +199,52 @@
         edit_classroom_theme_color = classroom.theme_color;
     }
 
+    let announcement_attachments: FileList;
+    let announcement_text: string;
+
+    async function create_announcement() {
+        let announcement_attachments_id = [];
+        if (announcement_attachments) {
+            for (const announcement_attachment of announcement_attachments) {
+                var form_data = new FormData()
+                form_data.append('file', announcement_attachment, announcement_attachment.name)
+                const response = await fetch(`${api_url}/attachments`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                    },
+                    body: form_data
+                });
+                const response_data = await response.json();
+                console.log(response_data)
+                announcement_attachments_id.push(response_data.id);
+            }
+        }
+        const response = await fetch(`${api_url}/classrooms/${classroom_id}/items`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                type: "Announcement",
+                topic_id: null,
+                attachments_id: announcement_attachments_id,
+                assigned_to_students_id: [],  // TODO: Add students?
+                title: null,
+                description: null,
+                announcement_text: announcement_text,
+                due_date: null,
+                point: null,
+                choices: null,
+            })
+        });
+        const response_data = await response.json();
+        current_classroom = get_current_classroom();
+        announcement_text = "";
+        alert("Announcement created successfully")
+    }
+
     onMount(async () => {
         const classroom = await current_classroom;
         document.title = "Classroom - " + classroom.name;
@@ -263,9 +309,29 @@
                 {/if}
             </div>
             <div class=" w-[44.75rem] m-4 columns-1">
-                {#each current_classroom.items as item}
+                {#await current_user then current_user}
+                    {#if current_user.id == current_classroom.owner.id}
+                        <div class="w-[44rem] h-48 mx-auto mb-6 bg-white rounded-lg p-4 border border-solid border-gray-300 hover:drop-shadow-xl">
+                            <h2 class="text-gray-600">Create announcement</h2>
+                            <textarea bind:value={announcement_text} class="mt-3 w-[42rem] p-2 resize-none rounded-lg border border-gray-300"></textarea>
+                            <button on:click={create_announcement} style="background-color: {current_classroom.theme_color};" class="text-white px-4 py-2 rounded-lg mt-3 w-80">Create</button>
+                            <input bind:files={announcement_attachments} id="many" multiple type="file" class="mt-4 ml-10 file:cursor-pointer file:bg-gray-200 file:hover:bg-gray-300 file:mr-2.5 file:mb-2 file:border-none file:rounded-lg file:px-2.5 file:py-1" />
+                        </div>
+                    {/if}
+                {/await}
+                {#each current_classroom.items as item (item.id)}
                     {#if item.type === "Announcement"}
-                        <h1>Not implemented yet</h1>
+                        <div class="w-[44rem] h-fit mx-auto mb-6 bg-white rounded-lg p-4 border border-solid border-gray-300 cursor-pointer hover:drop-shadow-xl">
+                            <img src="{api_url}/users/{current_classroom.owner.id}/avatar/data" alt="Avatar" class="w-10 h-10 relative left-2 rounded-full">
+                            <h1 class="text-base font-medium relative -top-10 left-16 text-gray-600">{current_classroom.owner.username}</h1>
+                            <h2 class="text-sm relative -top-10 left-16 text-gray-600">Posted: {(new Date(item.created_at)).toDateString()}</h2>
+                            <p class="border-t border-gray-300 w-[42rem] text-wrap break-words relative -top-4 pt-4">{item.announcement_text}</p>
+                            {#if item.attachments}
+                                {#each item.attachments as attachment (attachment.id)}
+                                    <a href={api_url + "/attachments/" + attachment.id + "/data"} target="_blank" class="text-blue-600 underline m-4 block">{attachment.name}</a>
+                                {/each}
+                            {/if}
+                        </div>
                     {:else}
                         <a href="/classrooms/{classroom_id}/classworks/{item.id}" class="w-[56rem] mx-auto">
                             <div class="w-[44rem] h-20 mx-auto bg-white rounded-lg p-4 border border-solid border-gray-300 cursor-pointer hover:drop-shadow-xl">
