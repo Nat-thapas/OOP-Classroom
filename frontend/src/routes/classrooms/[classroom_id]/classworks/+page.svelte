@@ -140,7 +140,7 @@
                 announcement_text: null,
                 due_date: item_due_date || null,
                 point: item_point || null,
-                choices: item_choices ? [item_option_1, item_option_2, item_option_3, item_option_4].filter(Boolean) : null,
+                choices: item_choices && item_choices.length > 0 ? [item_option_1, item_option_2, item_option_3, item_option_4].filter(Boolean) : null,
             })
         });
         is_create_classwork_menu_open = false;
