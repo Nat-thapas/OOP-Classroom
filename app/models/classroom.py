@@ -2,7 +2,7 @@ from datetime import datetime
 from typing import Annotated
 
 from annotated_types import MaxLen, MinLen
-from pydantic import BaseModel, Field, validator
+from pydantic import BaseModel, EmailStr, Field, validator
 
 from ..config.config import get_settings
 from ..constants.enums import ClassroomItemType
@@ -45,6 +45,10 @@ class JoinClassroomModel(BaseModel):
             max_length=settings.classroom_code_length,
         ),
     ]
+
+
+class AddStudentToClassroomModel(BaseModel):
+    email: EmailStr
 
 
 class CreateClassroomTopicModel(BaseModel):

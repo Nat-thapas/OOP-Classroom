@@ -63,6 +63,7 @@
     let is_edit_classroom_menu_open: boolean = false;
     let is_customize_classroom_menu_open: boolean = false;
     let is_select_banner_menu_open: boolean = false;
+    let is_add_student_menu_open: boolean = false;
 
     function toggle_edit_classroom_menu_state() {
         is_edit_classroom_menu_open = !is_edit_classroom_menu_open;
@@ -74,6 +75,10 @@
 
     function toggle_select_banner_menu_state() {
         is_select_banner_menu_open = !is_select_banner_menu_open;
+    }
+
+    function toggle_add_student_menu_state() {
+        is_add_student_menu_open = !is_add_student_menu_open;
     }
 
     let edit_classroom_name: string = "";
@@ -282,6 +287,25 @@
         window.location.href = "/";
     }
 
+    let new_student_email: string;
+
+    async function add_student_to_classroom() {
+        const response = await fetch(`${api_url}/classrooms/${classroom_id}`, {
+            method: 'PUT',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                email: new_student_email
+            })
+        });
+        const response_data = await response.json();
+        new_student_email = "";
+        is_add_student_menu_open = false;
+        alert("Student added to classroom");
+    }
+
     onMount(async () => {
         const classroom = await current_classroom;
         document.title = "Classroom - " + classroom.name;
@@ -322,6 +346,14 @@
                         <h3 class="font-medium">Class code</h3>
                         <p style="color: {current_classroom.theme_color};" class="text-2xl font-semibold">{current_classroom.code}</p>
                     </div>
+                    <button on:click={toggle_add_student_menu_state} style="background-color: {current_classroom.theme_color};" class="p-2 w-44 mt-4 rounded-lg text-white text-xl">
+                        <div class="flex items-center ml-2">
+                            <span class="material-symbols-outlined mr-3">
+                                person_add
+                            </span>
+                            Add student
+                        </div>
+                    </button>
                     <button on:click={toggle_edit_classroom_menu_state} style="background-color: {current_classroom.theme_color};" class="p-2 w-44 mt-4 rounded-lg text-white text-xl">
                         <div class="flex items-center ml-10">
                             <span class="material-symbols-outlined mr-4">
@@ -551,5 +583,33 @@
                 {/if}
             {/each}
         {/await}
+    </div>
+{/if}
+{#if is_add_student_menu_open}
+    <div transition:fade={{ duration: 150, easing: quadOut }} class="fixed top-0 left-0 bottom-0 right-0 bg-black opacity-50 z-40"></div>
+    <div transition:scale={{ duration: 150, easing: quadOut, start: 0.75 }} class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[36rem] h-fit z-50 bg-white rounded-xl p-5">
+        <h1 class="text-lg font-medium text-gray-600 inline-block">Join class</h1>
+        <button class="inline-block cursor-pointer float-right" on:click={() => {is_add_student_menu_open = false;}}>
+            <span class="material-symbols-outlined">
+                close
+            </span>
+        </button>
+        <form on:submit|preventDefault={add_student_to_classroom} action="/add_student" method="post">
+            <input
+                type="email"
+                class="w-[32rem] h-12 m-auto mt-4 block p-5 rounded-md border border-solid border-gray-500 focus:border-blue-700 outline-none placeholder:text-gray-500"
+                required
+                placeholder="Student Email"
+                bind:value={new_student_email}
+            />
+            <div>
+                <button
+                    type="submit"
+                    class="w-[32rem] h-12 m-auto mt-4 block bg-blue-500 text-white rounded-full hover:bg-blue-600 hover:drop-shadow-md duration-100 ease-in"
+                >
+                    Add
+                </button>
+            </div>
+        </form>
     </div>
 {/if}

@@ -57,12 +57,22 @@
             <div class="flex items-center ml-4">
                 <img src="{api_url}/users/{current_classroom.owner.id}/avatar/data" alt="Profile" class="w-8 h-8 rounded-full" />
                 <p class="text-gray-600 ml-4 font-medium">{current_classroom.owner.username}</p>
+                <a href="mailto:{current_classroom.owner.email}" class="ml-auto mr-4 mt-2 text-gray-600">
+                    <span class="material-symbols-outlined">
+                        mail
+                    </span>
+                </a>
             </div>
             <h1 style="color: {current_classroom.theme_color}; border-color: {current_classroom.theme_color};" class="text-3xl w-[48rem] border-b pb-4 mb-4 mt-12">Classmates</h1>
             {#each current_classroom.students as student}
                 <div class="flex items-center ml-4 pb-3 mb-3 border-b border-gray-300">
                     <img src="{api_url}/users/{student.id}/avatar/data" alt="Profile" class="w-8 h-8 rounded-full" />
                     <p class="text-gray-600 ml-4 font-medium">{student.username}</p>
+                    <a href="mailto:{student.email}" class="ml-auto mr-4 mt-2 text-gray-600">
+                        <span class="material-symbols-outlined">
+                            mail
+                        </span>
+                    </a>
                 </div>
             {/each}
         </div>

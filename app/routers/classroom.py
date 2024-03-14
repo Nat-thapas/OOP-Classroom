@@ -17,14 +17,12 @@ from ..dependencies.classroom import (
 )
 from ..internal.classroom import Classroom
 from ..internal.controller import controller
-from ..internal.items import (
-    BaseItem,
-    SubmissionsMixin,
-)
+from ..internal.items import BaseItem, SubmissionsMixin
 from ..internal.submission import Submission
 from ..internal.user import User
 from ..models.classroom import (
     AddCommentModel,
+    AddStudentToClassroomModel,
     CreateClassroomItemModel,
     CreateClassroomModel,
     CreateClassroomTopicModel,
@@ -101,6 +99,20 @@ async def get_classroom(
     return classroom.to_dict(
         include_code=include_code, include_lists=True, filter_item_for_user=user
     )
+
+
+@router.put("/{classroom_id}", dependencies=[Depends(verify_user_is_classroom_owner)])
+async def add_student_to_classroom(
+    body: AddStudentToClassroomModel,
+    classroom: Annotated[Classroom, Depends(get_classroom_from_path)],
+):
+    user = controller.get_user_by_email(body.email)
+    if user is None:
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, "Invalid email")
+    if user in classroom:
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, "User already in classroom")
+    classroom.add_student(user)
+    return {"message": "Student added successfully"}
 
 
 @router.patch(
